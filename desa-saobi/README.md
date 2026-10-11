@@ -1,66 +1,161 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Layanan Surat Mandiri Online Desa Saobi
+> **Pemerintah Desa Saobi**, Kecamatan Kangayan, Kabupaten Sumenep, Jawa Timur.
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Aplikasi web berbasis **Laravel 11** untuk pengelolaan administrasi permohonan surat keterangan warga secara mandiri, cepat, dan transparan. Dilengkapi fitur import master data kependudukan dari Excel, penomoran surat otomatis yang dapat disesuaikan per jenis surat, tanda tangan elektronik kepala desa, serta penerbitan dokumen PDF siap cetak.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## 🚀 Fitur Utama
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+- **Portal Warga (Client):**
+  - Pembuatan permohonan surat secara mandiri.
+  - Tracking status pengajuan (*Menunggu Verifikasi*, *Diproses*, *Selesai / Terbit*, *Ditolak*).
+  - Unduh langsung dokumen surat resmi berformat PDF.
+- **Panel Administrator (Petugas Desa):**
+  - **Dashboard Statistik:** Ringkasan surat masuk, antrean verifikasi, dan statistik surat terbit.
+  - **Master Kependudukan:** Kelola data warga serta import data massal dari file Excel (`.xlsx` / `.csv`) lengkap dengan pembuatan akun login warga secara otomatis.
+  - **Pengaturan Jenis & Nomor Surat:** Konfigurasi template penomoran surat otomatis per jenis surat (misal: `470/{NOMOR}/SKU/435.312.108/{TAHUN}`) dengan opsi edit manual saat pemrosesan.
+  - **Pengaturan Profil Desa & TTD:** Nama Kepala Desa, NIP, alamat kantor desa, serta unggah tanda tangan & stempel basah resmi.
+  - **Penerbitan Surat & PDF Otomatis:** Otomatis menghasilkan cetak surat resmi format PDF.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## 📋 Prasyarat Sistem (Prerequisites)
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+Pastikan komputer/server Anda telah terpasang software berikut:
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+- **PHP** >= 8.2 (dengan ekstensi `pdo`, `mbstring`, `openssl`, `gd`, `zip`, `fileinfo`)
+- **Composer** (Package Manager PHP)
+- **Node.js** (versi 18+) & **NPM**
+- **MySQL** / **MariaDB**
+- **Git**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+## 🛠️ Panduan Instalasi (Git Clone)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+Ikuti langkah-langkah berikut untuk mengunduh dan menjalankan proyek ini di komputer lokal:
 
-### Premium Partners
+### 1. Clone Repository
+Buka terminal / Git Bash, lalu jalankan perintah:
+```bash
+git clone https://github.com/nabilroyyan/PERMINTAAN-SURAT-SAOBI.git
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+### 2. Masuk ke Folder Proyek
+```bash
+cd PERMINTAAN-SURAT-SAOBI/desa-saobi
+```
 
-## Contributing
+### 3. Install Dependensi PHP (Composer)
+```bash
+composer install
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### 4. Install Dependensi JavaScript (NPM)
+```bash
+npm install
+```
 
-## Code of Conduct
+### 5. Konfigurasi File Environment (`.env`)
+Salin file contoh konfigurasi `.env.example` menjadi `.env`:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+- **Windows (Command Prompt / PowerShell):**
+  ```cmd
+  copy .env.example .env
+  ```
+- **Linux / macOS / Git Bash:**
+  ```bash
+  cp .env.example .env
+  ```
 
-## Security Vulnerabilities
+Buka file `.env` dengan text editor, lalu sesuaikan koneksi database Anda:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=desa_saobi
+DB_USERNAME=root
+DB_PASSWORD=
+```
+*(Pastikan database dengan nama `desa_saobi` sudah dibuat di MySQL / phpMyAdmin).*
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+### 6. Generate Application Key
+```bash
+php artisan key:generate
+```
 
-## License
+### 7. Jalankan Migrasi Database & Seeder
+Perintah ini akan membuat semua tabel dan mengisi data awal (akun admin, data contoh warga, pengaturan desa, dan 6 jenis surat standar):
+```bash
+php artisan migrate --seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+### 8. Hubungkan Storage Publik (Untuk PDF & Foto TTD)
+```bash
+php artisan storage:link
+```
+
+### 9. Compile Asset Frontend
+Jalankan salah satu perintah berikut:
+- **Untuk Mode Pengembangan (Hot Reload):**
+  ```bash
+  npm run dev
+  ```
+- **Atau untuk Mode Produksi (Build Asset Sekali Saja):**
+  ```bash
+  npm run build
+  ```
+
+### 10. Jalankan Server Lokal Laravel
+Buka terminal baru di folder proyek, lalu jalankan:
+```bash
+php artisan serve
+```
+
+Aplikasi sekarang dapat diakses melalui browser di:
+👉 **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+
+---
+
+## 🔑 Akun Login Bawaan (Default Credentials)
+
+Setelah menjalankan `php artisan migrate --seed`, Anda dapat langsung masuk dengan akun berikut:
+
+| Peran (Role) | Email | Password | Keterangan |
+|---|---|---|---|
+| **Administrator** | `admin@saobi.desa.id` | `password` | Hak akses penuh panel admin, verifikasi surat, dan data penduduk |
+| **Warga (Contoh)** | `warga@saobi.desa.id` | `password` | NIK: `3529012345670001` (Ahmad Warga Saobi) |
+
+---
+
+## 📂 Struktur Penting Proyek
+
+```text
+desa-saobi/
+├── app/
+│   ├── Http/Controllers/
+│   │   ├── Admin/             # Controller Admin (Permohonan, Penduduk, Jenis Surat, Pengaturan Desa)
+│   │   └── Client/            # Controller Warga (Dashboard warga, permohonan surat)
+│   └── Models/                # Eloquent Models (SuratRequest, SuratType, Penduduk, VillageSetting, dll.)
+├── database/
+│   ├── migrations/            # Struktur tabel database
+│   └── seeders/               # Data awal database (DatabaseSeeder.php)
+├── public/                    # Aset statis & template Excel kependudukan
+├── resources/
+│   └── views/
+│       ├── admin/             # Tampilan blade panel administrator
+│       ├── client/            # Tampilan blade portal warga
+│       ├── layouts/           # Template layout (app.blade.php & navigation.blade.php)
+│       └── pdf/               # Format template cetak PDF surat resmi
+└── routes/
+    ├── web.php                # Rute utama sistem
+    └── auth.php               # Rute autentikasi Breeze
+```
+
+---
+
+## 📄 Lisensi
+
+Dikembangkan untuk kebutuhan pelayanan publik dan digitalisasi administrasi kependudukan **Desa Saobi**, Kecamatan Kangayan, Kabupaten Sumenep.
+Open-source di bawah lisensi [MIT](LICENSE).
