@@ -170,6 +170,8 @@
                                 <th class="px-6 py-4">L/P</th>
                                 <th class="px-6 py-4">Tempat, Tgl Lahir</th>
                                 <th class="px-6 py-4">Alamat / Dusun</th>
+                                <th class="px-6 py-4">Email Akun</th>
+                                <th class="px-6 py-4">Password</th>
                                 <th class="px-6 py-4">Status Akun</th>
                                 <th class="px-6 py-4 text-right">Aksi</th>
                             </tr>
@@ -201,13 +203,34 @@
                                         {{ $item->alamat ?? ($item->dusun ? 'Dusun ' . $item->dusun : '-') }}
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap">
+                                        @if ($item->user)
+                                            <div class="flex items-center gap-1.5 font-medium text-xs text-slate-800">
+                                                <svg class="w-3.5 h-3.5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207" />
+                                                </svg>
+                                                <span class="font-mono text-emerald-800 font-semibold select-all">{{ $item->user->email }}</span>
+                                            </div>
+                                        @else
+                                            <span class="text-xs text-slate-400 italic">Belum dibuat</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        @if ($item->user)
+                                            <span class="font-mono text-xs px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-800 border border-emerald-200 font-bold select-all tracking-wide" title="Password akun warga">
+                                                {{ $item->user->password_plain ?? 'saobi123' }}
+                                            </span>
+                                        @else
+                                            <span class="text-xs text-slate-400 italic">-</span>
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
                                         @if ($item->user_id)
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Warga memiliki akun login untuk layanan surat online">
-                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 me-1.5"></span> Akun Aktif
+                                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 me-1.5"></span> Aktif
                                             </span>
                                         @else
                                             <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200" title="Warga belum memiliki akun login">
-                                                Belum Ada Akun
+                                                Belum Ada
                                             </span>
                                         @endif
                                     </td>

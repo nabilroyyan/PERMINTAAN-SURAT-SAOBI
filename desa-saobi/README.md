@@ -17,6 +17,7 @@ Aplikasi web berbasis **Laravel 11** untuk pengelolaan administrasi permohonan s
   - **Pengaturan Jenis & Nomor Surat:** Konfigurasi template penomoran surat otomatis per jenis surat (misal: `470/{NOMOR}/SKU/435.312.108/{TAHUN}`) dengan opsi edit manual saat pemrosesan.
   - **Pengaturan Profil Desa & TTD:** Nama Kepala Desa, NIP, alamat kantor desa, serta unggah tanda tangan & stempel basah resmi.
   - **Penerbitan Surat & PDF Otomatis:** Otomatis menghasilkan cetak surat resmi format PDF.
+  - **Dokumentasi Design System:** Tersedia buku pedoman desain resmi dalam format PDF ([`public/docs/Design_System_Desa_Saobi.pdf`](public/docs/Design_System_Desa_Saobi.pdf)).
 
 ---
 

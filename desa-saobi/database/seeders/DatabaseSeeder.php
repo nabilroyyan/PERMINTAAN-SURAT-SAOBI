@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Administrator Desa Saobi',
                 'password' => Hash::make('password'),
+                'password_plain' => 'password',
                 'role' => 'admin',
                 'nik' => '3529000000000001',
             ]
@@ -32,6 +33,7 @@ class DatabaseSeeder extends Seeder
             [
                 'name' => 'Ahmad Warga Saobi',
                 'password' => Hash::make('password'),
+                'password_plain' => 'password',
                 'role' => 'client',
                 'nik' => '3529012345670001',
             ]

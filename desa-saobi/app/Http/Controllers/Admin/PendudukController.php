@@ -72,11 +72,13 @@ class PendudukController extends Controller
 
         $userId = null;
         if (!empty($validated['email'])) {
+            $plain = $validated['password'] ?? '12345678';
             $user = User::create([
                 'name' => $validated['nama_lengkap'],
                 'nik' => $validated['nik'],
                 'email' => strtolower($validated['email']),
-                'password' => Hash::make($validated['password'] ?? '12345678'),
+                'password' => Hash::make($plain),
+                'password_plain' => $plain,
                 'role' => 'client',
             ]);
             $userId = $user->id;
@@ -181,6 +183,7 @@ class PendudukController extends Controller
                         ];
                         if (!empty($passwordRaw)) {
                             $updateData['password'] = $hashedPassword;
+                            $updateData['password_plain'] = $passwordRaw;
                         }
                         $user->update($updateData);
                         $userId = $user->id;
@@ -190,6 +193,7 @@ class PendudukController extends Controller
                             'nik' => $nik,
                             'email' => $email,
                             'password' => $hashedPassword,
+                            'password_plain' => $plainPassword,
                             'role' => 'client',
                         ]);
                         $userId = $newUser->id;
