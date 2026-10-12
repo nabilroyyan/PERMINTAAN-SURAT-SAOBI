@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     if (auth()->check()) {
-        return auth()->user()->role === 'admin'
+        return auth()->user()->canAccessAdminPanel()
             ? redirect()->route('admin.dashboard')
             : redirect()->route('client.dashboard');
     }
@@ -21,7 +21,7 @@ Route::get('/', function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', function () {
-        return auth()->user()->role === 'admin'
+        return auth()->user()->canAccessAdminPanel()
             ? redirect()->route('admin.dashboard')
             : redirect()->route('client.dashboard');
     })->name('dashboard');
@@ -52,6 +52,9 @@ Route::middleware(['auth', 'role:client'])
 
         Route::get('/surat/{suratRequest}/download', [SuratRequestController::class, 'download'])
             ->name('surat.download');
+
+        Route::get('/live-check', [ClientDashboard::class, 'liveCheck'])
+            ->name('live-check');
     });
 
 Route::middleware(['auth', 'role:admin'])
@@ -60,6 +63,9 @@ Route::middleware(['auth', 'role:admin'])
     ->group(function () {
         Route::get('/dashboard', [AdminDashboard::class, 'index'])
             ->name('dashboard');
+
+        Route::get('/live-check', [AdminDashboard::class, 'liveCheck'])
+            ->name('live-check');
 
         Route::get('/permohonan', [SuratManagementController::class, 'index'])
             ->name('permohonan.index');
@@ -88,8 +94,14 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/penduduk/template', [PendudukController::class, 'downloadTemplate'])
             ->name('penduduk.template');
 
+        Route::get('/penduduk/sample-5000', [PendudukController::class, 'downloadSample5000'])
+            ->name('penduduk.sample-5000');
+
         Route::delete('/penduduk/{penduduk}', [PendudukController::class, 'destroy'])
             ->name('penduduk.destroy');
+
+        Route::put('/penduduk/{penduduk}/account', [PendudukController::class, 'updateAccount'])
+            ->name('penduduk.account');
 
         Route::resource('jenis-surat', SuratTypeController::class);
 

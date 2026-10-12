@@ -14,56 +14,129 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
-    <body class="font-sans antialiased bg-slate-50 text-slate-800 min-h-screen flex flex-col">
-        @include('layouts.navigation')
+    @if (Auth::check() && Auth::user()->canAccessAdminPanel())
+        <!-- Admin / Kepala Desa Layout with Sidebar -->
+        <body class="font-sans antialiased bg-slate-50 text-slate-800 min-h-screen" x-data="{ sidebarOpen: false }">
+            <!-- Global Loading Animation -->
+            @include('layouts.partials.loading-indicator')
 
-        <!-- Page Heading -->
-        @if (isset($header))
-            <header class="bg-white border-b border-slate-200/80 shadow-sm">
-                <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
-                    {{ $header }}
+            <!-- Global Real-Time Sync -->
+            @include('layouts.partials.live-updater')
+
+            @include('layouts.admin-sidebar')
+
+            <div class="lg:pl-64 flex flex-col min-h-screen">
+                @include('layouts.admin-topbar')
+
+                <!-- Page Heading -->
+                @if (isset($header))
+                    <header class="bg-white border-b border-slate-200/80 shadow-xs">
+                        <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                            {{ $header }}
+                        </div>
+                    </header>
+                @elseif (View::hasSection('header'))
+                    <header class="bg-white border-b border-slate-200/80 shadow-xs">
+                        <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                            @yield('header')
+                        </div>
+                    </header>
+                @endif
+
+                <!-- Global Flash Messages -->
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
+                    @if (session('success'))
+                        <div class="p-4 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-start gap-3 shadow-xs">
+                            <svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm font-medium">{{ session('success') }}</div>
+                        </div>
+                    @endif
+
+                    @if (session('error'))
+                        <div class="p-4 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 shadow-xs">
+                            <svg class="w-5 h-5 text-red-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <div class="text-sm font-medium">{{ session('error') }}</div>
+                        </div>
+                    @endif
                 </div>
-            </header>
-        @elseif (View::hasSection('header'))
-            <header class="bg-white border-b border-slate-200/80 shadow-sm">
-                <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
-                    @yield('header')
-                </div>
-            </header>
-        @endif
 
-        <!-- Global Flash Messages -->
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
-            @if (session('success'))
-                <div class="p-4 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-start gap-3 shadow-sm">
-                    <svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="text-sm font-medium">{{ session('success') }}</div>
-                </div>
-            @endif
+                <!-- Page Content -->
+                <main class="flex-1 py-6">
+                    {{ $slot ?? '' }}
+                    @yield('content')
+                </main>
 
-            @if (session('error'))
-                <div class="p-4 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 shadow-sm">
-                    <svg class="w-5 h-5 text-red-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
-                    <div class="text-sm font-medium">{{ session('error') }}</div>
-                </div>
-            @endif
-        </div>
-
-        <!-- Page Content -->
-        <main class="flex-1 py-6">
-            {{ $slot ?? '' }}
-            @yield('content')
-        </main>
-
-        <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-                <p>&copy; {{ date('Y') }} <strong>Pemerintah Desa Saobi</strong>, Kecamatan Kangayan, Kabupaten Sumenep.</p>
-                <p class="text-emerald-700 font-medium">Sistem Permintaan & Layanan Surat Mandiri Online</p>
+                <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+                    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+                        <p>&copy; {{ date('Y') }} <strong>Pemerintah Desa Saobi</strong>, Kecamatan Kangayan, Kabupaten Sumenep.</p>
+                        <p class="text-emerald-700 font-medium">Panel Kendali Administrator</p>
+                    </div>
+                </footer>
             </div>
-        </footer>
-    </body>
+        </body>
+    @else
+        <!-- Standard Layout (Citizen / Guest) -->
+        <body class="font-sans antialiased bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+            <!-- Global Loading Animation -->
+            @include('layouts.partials.loading-indicator')
+
+            <!-- Global Real-Time Sync -->
+            @include('layouts.partials.live-updater')
+
+            @include('layouts.navigation')
+
+            <!-- Page Heading -->
+            @if (isset($header))
+                <header class="bg-white border-b border-slate-200/80 shadow-xs">
+                    <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                        {{ $header }}
+                    </div>
+                </header>
+            @elseif (View::hasSection('header'))
+                <header class="bg-white border-b border-slate-200/80 shadow-xs">
+                    <div class="max-w-7xl mx-auto py-5 px-4 sm:px-6 lg:px-8">
+                        @yield('header')
+                    </div>
+                </header>
+            @endif
+
+            <!-- Global Flash Messages -->
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full mt-4">
+                @if (session('success'))
+                    <div class="p-4 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex items-start gap-3 shadow-xs">
+                        <svg class="w-5 h-5 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm font-medium">{{ session('success') }}</div>
+                    </div>
+                @endif
+
+                @if (session('error'))
+                    <div class="p-4 mb-4 rounded-xl bg-red-50 border border-red-200 text-red-800 flex items-start gap-3 shadow-xs">
+                        <svg class="w-5 h-5 text-red-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        <div class="text-sm font-medium">{{ session('error') }}</div>
+                    </div>
+                @endif
+            </div>
+
+            <!-- Page Content -->
+            <main class="flex-1 py-6">
+                {{ $slot ?? '' }}
+                @yield('content')
+            </main>
+
+            <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
+                <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
+                    <p>&copy; {{ date('Y') }} <strong>Pemerintah Desa Saobi</strong>, Kecamatan Kangayan, Kabupaten Sumenep.</p>
+                    <p class="text-emerald-700 font-medium">Sistem Permintaan & Layanan Surat Mandiri Online</p>
+                </div>
+            </footer>
+        </body>
+    @endif
 </html>

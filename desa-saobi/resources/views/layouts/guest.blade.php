@@ -15,6 +15,9 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-slate-800 antialiased bg-slate-50 min-h-screen flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white">
+        <!-- Global Loading Animation -->
+        @include('layouts.partials.loading-indicator')
+
         <div class="w-full max-w-md sm:max-w-lg px-2 sm:px-0 transition-all duration-200">
             <!-- Brand Header -->
             <div class="text-center mb-5 sm:mb-6">

@@ -15,8 +15,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // 1. Akun Admin Desa Saobi
-        User::updateOrCreate(
+        // 1. Akun Admin Desa Saobi (Administrator juga warga Desa Saobi)
+        $adminUser = User::updateOrCreate(
             ['email' => 'admin@saobi.desa.id'],
             [
                 'name' => 'Administrator Desa Saobi',
@@ -27,19 +27,71 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
-        // 2. Akun Warga Contoh
+        \App\Models\Penduduk::updateOrCreate(
+            ['nik' => '3529000000000001'],
+            [
+                'no_kk' => '3529000000000001',
+                'nama_lengkap' => 'Administrator Desa Saobi',
+                'tempat_lahir' => 'Sumenep',
+                'tanggal_lahir' => '1990-01-01',
+                'jenis_kelamin' => 'Laki-laki',
+                'alamat' => 'Dusun Saobi Barat RT 01 / RW 01',
+                'dusun' => 'Saobi Barat',
+                'rt' => '01',
+                'rw' => '01',
+                'agama' => 'Islam',
+                'pekerjaan' => 'Perangkat Desa',
+                'status_perkawinan' => 'Kawin',
+                'telepon' => '081200000001',
+                'user_id' => $adminUser->id,
+            ]
+        );
+
+        // 2. Akun Kepala Desa Saobi
+        $kadesUser = User::updateOrCreate(
+            ['email' => 'kades@saobi.desa.id'],
+            [
+                'name' => 'Kepala Desa Saobi',
+                'password' => Hash::make('password'),
+                'password_plain' => 'password',
+                'role' => 'kepala_desa',
+                'nik' => '3529000000000002',
+            ]
+        );
+
+        \App\Models\Penduduk::updateOrCreate(
+            ['nik' => '3529000000000002'],
+            [
+                'no_kk' => '3529000000000002',
+                'nama_lengkap' => 'Kepala Desa Saobi',
+                'tempat_lahir' => 'Sumenep',
+                'tanggal_lahir' => '1980-05-15',
+                'jenis_kelamin' => 'Laki-laki',
+                'alamat' => 'Dusun Saobi Timur RT 02 / RW 01',
+                'dusun' => 'Saobi Timur',
+                'rt' => '02',
+                'rw' => '01',
+                'agama' => 'Islam',
+                'pekerjaan' => 'Kepala Desa',
+                'status_perkawinan' => 'Kawin',
+                'telepon' => '081200000002',
+                'user_id' => $kadesUser->id,
+            ]
+        );
+
+        // 3. Akun Warga Contoh
         $wargaUser = User::updateOrCreate(
             ['email' => 'warga@saobi.desa.id'],
             [
                 'name' => 'Ahmad Warga Saobi',
                 'password' => Hash::make('password'),
                 'password_plain' => 'password',
-                'role' => 'client',
+                'role' => 'warga',
                 'nik' => '3529012345670001',
             ]
         );
 
-        // 2.1 Master Data Penduduk Contoh
+        // 3.1 Master Data Penduduk Contoh
         \App\Models\Penduduk::updateOrCreate(
             ['nik' => '3529012345670001'],
             [

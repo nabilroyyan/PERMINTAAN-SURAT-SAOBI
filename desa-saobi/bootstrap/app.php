@@ -19,7 +19,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo('/login');
 
         $middleware->redirectUsersTo(function () {
-            if (auth()->check() && auth()->user()->role === 'admin') {
+            if (auth()->check() && auth()->user()->canAccessAdminPanel()) {
                 return route('admin.dashboard');
             }
             return route('client.dashboard');

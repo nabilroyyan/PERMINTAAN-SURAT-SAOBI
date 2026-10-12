@@ -217,7 +217,18 @@
                         <p class="text-xs text-slate-500 mt-0.5">Isi jika warga ingin langsung bisa login tanpa perlu registrasi mandiri.</p>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="role" class="block text-xs font-bold text-slate-700 mb-1">Role / Hak Akses</label>
+                            <select name="role"
+                                    id="role"
+                                    class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2 px-3">
+                                <option value="warga" {{ old('role') === 'warga' ? 'selected' : '' }}>Warga Desa</option>
+                                <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrator</option>
+                                <option value="kepala_desa" {{ old('role') === 'kepala_desa' ? 'selected' : '' }}>Kepala Desa</option>
+                            </select>
+                        </div>
+
                         <div>
                             <label for="email" class="block text-xs font-bold text-slate-700 mb-1">Email Akun</label>
                             <input type="email"
@@ -237,7 +248,7 @@
                                    name="password"
                                    id="password"
                                    value="{{ old('password') }}"
-                                   placeholder="Kosongkan untuk default: 12345678"
+                                   placeholder="Default: 12345678"
                                    class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2 px-3">
                             @error('password')
                                 <p class="text-red-600 text-xs mt-1">{{ $message }}</p>

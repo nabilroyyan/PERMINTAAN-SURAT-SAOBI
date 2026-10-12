@@ -6,7 +6,7 @@
                 <!-- Logo & Brand -->
                 <div class="shrink-0 flex items-center">
                     @php
-                        $homeRoute = Auth::user()->role === 'admin' ? route('admin.dashboard') : route('client.dashboard');
+                        $homeRoute = Auth::user()->canAccessAdminPanel() ? route('admin.dashboard') : route('client.dashboard');
                     @endphp
                     <a href="{{ $homeRoute }}" class="flex items-center gap-3 group">
                         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-md shadow-emerald-500/20 group-hover:scale-105 transition-transform duration-200">
@@ -27,7 +27,7 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-2 sm:-my-px sm:ms-10 sm:flex">
-                    @if (Auth::user()->role === 'admin')
+                    @if (Auth::user()->canAccessAdminPanel())
                         <!-- Admin Nav -->
                         <a href="{{ route('admin.dashboard') }}"
                            class="inline-flex items-center px-4 py-2 border-b-2 text-sm font-semibold transition {{ request()->routeIs('admin.dashboard') ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-gray-600 hover:text-emerald-600 hover:border-emerald-300' }}">
@@ -84,8 +84,8 @@
             <!-- Settings Dropdown -->
             <div class="hidden sm:flex sm:items-center sm:ms-6">
                 <!-- Role Tag -->
-                <span class="me-3 px-2.5 py-1 text-xs font-semibold rounded-full {{ Auth::user()->role === 'admin' ? 'bg-amber-100 text-amber-800 border border-amber-200' : 'bg-emerald-100 text-emerald-800 border border-emerald-200' }}">
-                    {{ Auth::user()->role === 'admin' ? 'Petugas Admin' : 'Warga Desa' }}
+                <span class="me-3 px-2.5 py-1 text-xs font-semibold rounded-full {{ Auth::user()->role_badge_class }}">
+                    {{ Auth::user()->role_label }}
                 </span>
 
                 <x-dropdown align="right" width="48">
@@ -141,7 +141,7 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-emerald-50/50 border-t border-emerald-100">
         <div class="pt-2 pb-3 space-y-1">
-            @if (Auth::user()->role === 'admin')
+            @if (Auth::user()->canAccessAdminPanel())
                 <a href="{{ route('admin.dashboard') }}" class="block px-4 py-2 text-base font-medium text-emerald-800 hover:bg-emerald-100">
                     Dashboard
                 </a>
@@ -174,7 +174,7 @@
         <div class="pt-4 pb-3 border-t border-emerald-200 bg-white">
             <div class="px-4">
                 <div class="font-bold text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-xs text-gray-500">{{ Auth::user()->email }} ({{ Auth::user()->role }})</div>
+                <div class="font-medium text-xs text-gray-500">{{ Auth::user()->email }} ({{ Auth::user()->role_label }})</div>
             </div>
 
             <div class="mt-3 space-y-1">

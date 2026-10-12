@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -46,17 +47,38 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'role' => UserRole::class,
         ];
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === UserRole::ADMIN;
     }
 
-    public function isClient(): bool
+    public function isKepalaDesa(): bool
     {
-        return $this->role === 'client';
+        return $this->role === UserRole::KEPALA_DESA;
+    }
+
+    public function isWarga(): bool
+    {
+        return $this->role === UserRole::WARGA;
+    }
+
+    public function canAccessAdminPanel(): bool
+    {
+        return $this->isAdmin() || $this->isKepalaDesa();
+    }
+
+    public function getRoleLabelAttribute(): string
+    {
+        return $this->role instanceof UserRole ? $this->role->label() : ucfirst($this->role ?? 'Warga');
+    }
+
+    public function getRoleBadgeClassAttribute(): string
+    {
+        return $this->role instanceof UserRole ? $this->role->badgeClass() : 'bg-slate-100 text-slate-700';
     }
 
     public function suratRequests()
