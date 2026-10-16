@@ -125,16 +125,22 @@ class SuratManagementController extends Controller
 
         $villageSetting = VillageSetting::first() ?? new VillageSetting([
             'nama_desa' => 'Desa Saobi',
-            'nama_kepala_desa' => 'Kepala Desa Saobi',
+            'nama_kepala_desa' => 'HOSAINI, SH',
             'nip_kepala_desa' => '-',
-            'alamat' => 'Kecamatan Kangayan, Kabupaten Sumenep, Jawa Timur',
+            'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
         ]);
 
-        $suratRequest->load(['user', 'suratType']);
+        $suratRequest->load(['user.penduduk', 'suratType']);
 
         DB::transaction(function () use ($request, $suratRequest, $validated, $villageSetting) {
+            $viewName = 'pdf.surat';
+            $kode = strtolower($suratRequest->suratType->kode ?? '');
+            if ($kode && view()->exists("pdf.surat-{$kode}")) {
+                $viewName = "pdf.surat-{$kode}";
+            }
+
             // Generate PDF
-            $pdf = Pdf::loadView('pdf.surat', [
+            $pdf = Pdf::loadView($viewName, [
                 'surat' => $suratRequest,
                 'desa' => $villageSetting,
                 'nomorSurat' => $validated['nomor_surat'],

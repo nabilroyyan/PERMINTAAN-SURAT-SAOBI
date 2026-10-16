@@ -13,9 +13,9 @@ class VillageSettingController extends Controller
     {
         $setting = VillageSetting::first() ?? new VillageSetting([
             'nama_desa' => 'Desa Saobi',
-            'nama_kepala_desa' => 'MOH. SALEH, S.Pd',
-            'nip_kepala_desa' => '198205122010011005',
-            'alamat' => 'Jl. Pelabuhan Saobi, Pulau Saobi, Kec. Kangayan, Kab. Sumenep, Jawa Timur 69491',
+            'nama_kepala_desa' => 'HOSAINI, SH',
+            'nip_kepala_desa' => '-',
+            'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
         ]);
 
         return view('admin.settings.index', compact('setting'));

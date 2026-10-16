@@ -46,12 +46,22 @@ class SuratRequestController extends Controller
             $validated,
             $jenisSurat
         ) {
+            $penduduk = $request->user()->penduduk;
             $surat = SuratRequest::create([
                 'user_id' => $request->user()->id,
                 'surat_type_id' => $jenisSurat->id,
                 'data_pemohon' => [
-                    'nama' => $request->user()->name,
+                    'nama' => $penduduk?->nama_lengkap ?? $request->user()->name,
                     'nik' => $request->user()->nik,
+                    'tempat_lahir' => $penduduk?->tempat_lahir,
+                    'tanggal_lahir' => $penduduk?->tanggal_lahir?->format('Y-m-d'),
+                    'jenis_kelamin' => $penduduk?->jenis_kelamin,
+                    'status_perkawinan' => $penduduk?->status_perkawinan,
+                    'agama' => $penduduk?->agama ?? 'Islam',
+                    'pekerjaan' => $penduduk?->pekerjaan,
+                    'dusun' => $penduduk?->dusun,
+                    'rt' => $penduduk?->rt,
+                    'rw' => $penduduk?->rw,
                     'alamat' => $validated['alamat'],
                     'keperluan' => $validated['keperluan'],
                 ],

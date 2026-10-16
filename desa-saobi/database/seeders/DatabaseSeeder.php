@@ -51,7 +51,7 @@ class DatabaseSeeder extends Seeder
         $kadesUser = User::updateOrCreate(
             ['email' => 'kades@saobi.desa.id'],
             [
-                'name' => 'Kepala Desa Saobi',
+                'name' => 'Hosaini, S.H.',
                 'password' => Hash::make('password'),
                 'password_plain' => 'password',
                 'role' => 'kepala_desa',
@@ -63,7 +63,7 @@ class DatabaseSeeder extends Seeder
             ['nik' => '3529000000000002'],
             [
                 'no_kk' => '3529000000000002',
-                'nama_lengkap' => 'Kepala Desa Saobi',
+                'nama_lengkap' => 'Hosaini, S.H.',
                 'tempat_lahir' => 'Sumenep',
                 'tanggal_lahir' => '1980-05-15',
                 'jenis_kelamin' => 'Laki-laki',
@@ -157,9 +157,9 @@ class DatabaseSeeder extends Seeder
             ['id' => 1],
             [
                 'nama_desa' => 'Desa Saobi',
-                'nama_kepala_desa' => 'MOH. SALEH, S.Pd',
-                'nip_kepala_desa' => '198205122010011005',
-                'alamat' => 'Jl. Pelabuhan Saobi, Pulau Saobi, Kec. Kangayan, Kab. Sumenep, Jawa Timur',
+                'nama_kepala_desa' => 'HOSAINI, SH',
+                'nip_kepala_desa' => '-',
+                'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
             ]
         );
 
@@ -190,7 +190,7 @@ class DatabaseSeeder extends Seeder
                 'kode' => 'SKD',
                 'deskripsi' => 'Surat keterangan bertempat tinggal resmi di wilayah Desa Saobi.',
                 'persyaratan' => ['KTP', 'KK'],
-                'format_nomor' => '470/{NOMOR}/SKD/435.312.108/{TAHUN}',
+                'format_nomor' => '400.12.2/{NOMOR}/326.105/{TAHUN}',
                 'nomor_terakhir' => 0,
                 'panjang_nomor' => 2,
                 'is_active' => true,
