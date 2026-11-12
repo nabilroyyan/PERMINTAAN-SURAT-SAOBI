@@ -79,6 +79,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/permohonan/{suratRequest}/terbitkan', [SuratManagementController::class, 'publish'])
             ->name('permohonan.publish');
 
+        Route::get('/permohonan/{suratRequest}/download', [SuratManagementController::class, 'download'])
+            ->name('permohonan.download');
+
         Route::get('/penduduk', [PendudukController::class, 'index'])
             ->name('penduduk.index');
 

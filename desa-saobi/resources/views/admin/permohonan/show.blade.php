@@ -15,7 +15,7 @@
                     &larr; Kembali ke Daftar
                 </a>
                 @if ($suratRequest->status === 'completed' && $suratRequest->file_surat)
-                    <a href="{{ asset('storage/' . $suratRequest->file_surat) }}"
+                    <a href="{{ route('admin.permohonan.download', $suratRequest) }}"
                        target="_blank"
                        class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-sm transition">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -199,7 +199,7 @@
                                 </p>
                             </div>
                             @if ($suratRequest->file_surat)
-                                <a href="{{ asset('storage/' . $suratRequest->file_surat) }}"
+                                <a href="{{ route('admin.permohonan.download', $suratRequest) }}"
                                    target="_blank"
                                    class="w-full sm:w-auto text-center justify-center inline-flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition">
                                     Unduh File PDF

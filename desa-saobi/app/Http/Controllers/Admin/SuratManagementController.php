@@ -54,6 +54,18 @@ class SuratManagementController extends Controller
         return view('admin.permohonan.show', compact('suratRequest', 'villageSetting', 'nomorSuratDefault'));
     }
 
+    public function download(SuratRequest $suratRequest)
+    {
+        if (blank($suratRequest->file_surat) || !Storage::disk('public')->exists($suratRequest->file_surat)) {
+            return back()->with('error', 'File surat tidak ditemukan di server.');
+        }
+
+        $nama = str_replace(' ', '_', $suratRequest->suratType->nama ?? 'Surat')
+            . '_' . ($suratRequest->nomor_surat ? str_replace(['/', '\\'], '-', $suratRequest->nomor_surat) : $suratRequest->id) . '.pdf';
+
+        return Storage::disk('public')->download($suratRequest->file_surat, $nama);
+    }
+
     public function updateStatus(
         Request $request,
         SuratRequest $suratRequest
