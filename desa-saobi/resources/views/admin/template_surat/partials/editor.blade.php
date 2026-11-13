@@ -8,6 +8,7 @@
      x-data="templateEditor(@js([
         'konten' => $contentValue,
         'judul' => $namaValue,
+        'variabel' => $template?->variabel_tambahan ?? [],
         'previewUrl' => route('admin.template-surat.preview'),
         'csrf' => csrf_token(),
      ]))">
@@ -17,6 +18,8 @@
         @if (!empty($method) && strtoupper($method) !== 'POST')
             @method($method)
         @endif
+
+        <input type="hidden" name="variabel_tambahan_json" :value="JSON.stringify(variabel)">
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Kolom Editor Template -->
@@ -110,6 +113,71 @@
                         </p>
                     </div>
                 </div>
+
+                <!-- Variabel Tambahan (Diisi Pemohon) -->
+                <div class="bg-white rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+                    <div class="p-4 sm:p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                        <div>
+                            <h3 class="text-base sm:text-lg font-bold text-slate-800">Variabel Tambahan (Diisi Pemohon)</h3>
+                            <p class="text-xs text-slate-500 mt-1">
+                                Isian yang harus diisi warga saat mengajukan surat ini, misalnya batas tanah sebelah barat/timur/utara/selatan.
+                            </p>
+                        </div>
+                        <button type="button" @click="tambahVariabel()"
+                                class="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-xl shadow-sm transition shrink-0">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Tambah Variabel
+                        </button>
+                    </div>
+
+                    <div class="p-4 sm:p-6 space-y-3">
+                        <template x-if="variabel.length === 0">
+                            <p class="text-xs text-slate-400 italic">
+                                Belum ada variabel tambahan. Klik "Tambah Variabel" bila surat ini butuh isian khusus dari pemohon.
+                            </p>
+                        </template>
+
+                        <template x-for="(item, index) in variabel" :key="index">
+                            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2.5 items-end bg-slate-50/80 border border-slate-200/80 rounded-xl p-3">
+                                <div class="sm:col-span-4">
+                                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Label Isian</label>
+                                    <input type="text" x-model="item.label" placeholder="Mis: Batas Tanah Sebelah Barat"
+                                           class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2 px-2.5">
+                                </div>
+                                <div class="sm:col-span-3">
+                                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Kode Variabel</label>
+                                    <input type="text" x-model="item.kode" placeholder="otomatis dari label"
+                                           class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2 px-2.5 font-mono">
+                                    <p class="text-[10px] text-emerald-700 mt-1 font-mono" x-text="'{' + kodeVariabel(item) + '}'"></p>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Tipe</label>
+                                    <select x-model="item.tipe"
+                                            class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2 px-2.5">
+                                        <option value="text">Teks</option>
+                                        <option value="textarea">Teks Panjang</option>
+                                        <option value="date">Tanggal</option>
+                                    </select>
+                                </div>
+                                <div class="sm:col-span-2 flex items-center gap-2 pb-2">
+                                    <input type="checkbox" x-model="item.wajib" :id="'wajib_' + index"
+                                           class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                                    <label :for="'wajib_' + index" class="text-xs font-semibold text-slate-700">Wajib</label>
+                                </div>
+                                <div class="sm:col-span-1 flex sm:justify-end">
+                                    <button type="button" @click="hapusVariabel(index)"
+                                            class="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition" title="Hapus">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             <!-- Kolom Panel Variabel -->
@@ -141,6 +209,19 @@
                                 </div>
                             </div>
                         @endforeach
+
+                        <div x-show="variabel.length > 0">
+                            <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80 mb-1.5">
+                                Variabel Tambahan
+                            </p>
+                            <div class="flex flex-wrap gap-1.5">
+                                <template x-for="(item, index) in variabel" :key="'v' + index">
+                                    <button type="button" @click="insertTag(kodeVariabel(item))"
+                                            class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-50 border border-emerald-400/30 rounded-md font-mono text-[11px] font-semibold transition active:scale-95"
+                                            x-text="'{' + kodeVariabel(item) + '}'"></button>
+                                </template>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -199,12 +280,32 @@ function templateEditor(config) {
     return {
         konten: config.konten || '',
         judul: config.judul || '',
+        variabel: Array.isArray(config.variabel) ? config.variabel : [],
         previewUrl: config.previewUrl,
         csrf: config.csrf,
         previewOpen: false,
         previewLoading: false,
         previewError: '',
         previewHtml: '',
+
+        tambahVariabel() {
+            this.variabel.push({ kode: '', label: '', tipe: 'text', wajib: false });
+        },
+
+        hapusVariabel(index) {
+            this.variabel.splice(index, 1);
+        },
+
+        kodeVariabel(item) {
+            const sumber = (item.kode && item.kode.trim()) || item.label || '';
+            const kode = sumber
+                .toString()
+                .toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-z0-9]+/g, '_')
+                .replace(/^_+|_+$/g, '');
+            return kode || 'variabel';
+        },
 
         insertTag(tag) {
             const el = this.$refs.kontenField;
@@ -236,7 +337,11 @@ function templateEditor(config) {
                         'X-CSRF-TOKEN': this.csrf,
                         'Accept': 'text/html',
                     },
-                    body: JSON.stringify({ konten: this.konten, judul: this.judul }),
+                    body: JSON.stringify({
+                        konten: this.konten,
+                        judul: this.judul,
+                        variabel_tambahan_json: JSON.stringify(this.variabel),
+                    }),
                 });
 
                 if (!res.ok) {

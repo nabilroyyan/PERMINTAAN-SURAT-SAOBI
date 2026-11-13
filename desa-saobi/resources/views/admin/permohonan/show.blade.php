@@ -100,6 +100,24 @@
                                 {{ $suratRequest->data_pemohon['keperluan'] ?? '-' }}
                             </dd>
                         </div>
+
+                        @php
+                            $dataTambahan = $suratRequest->data_pemohon['tambahan'] ?? [];
+                            $definisiTambahan = collect($suratRequest->suratType?->template?->variabel_tambahan ?? [])->keyBy('kode');
+                        @endphp
+                        @if (is_array($dataTambahan) && count($dataTambahan) > 0)
+                            <div class="sm:col-span-2">
+                                <dt class="text-xs font-medium text-slate-400 uppercase">Data Tambahan Surat</dt>
+                                <dd class="mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
+                                    @foreach ($dataTambahan as $kode => $nilai)
+                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 text-sm">
+                                            <span class="text-slate-500">{{ $definisiTambahan[$kode]['label'] ?? \Illuminate\Support\Str::headline($kode) }}</span>
+                                            <span class="font-semibold text-slate-800 sm:text-right">{{ filled($nilai) ? $nilai : '-' }}</span>
+                                        </div>
+                                    @endforeach
+                                </dd>
+                            </div>
+                        @endif
                     </dl>
                 </div>
 

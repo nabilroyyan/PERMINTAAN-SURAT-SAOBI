@@ -10,12 +10,14 @@ class SuratTemplate extends Model
         'nama',
         'deskripsi',
         'konten',
+        'variabel_tambahan',
         'is_active',
     ];
 
     protected function casts(): array
     {
         return [
+            'variabel_tambahan' => 'array',
             'is_active' => 'boolean',
         ];
     }

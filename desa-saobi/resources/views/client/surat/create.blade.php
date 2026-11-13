@@ -45,7 +45,9 @@
                 </div>
             @endif
 
-            <form action="{{ route('client.surat.store') }}" method="POST" class="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
+            <form action="{{ route('client.surat.store') }}" method="POST"
+                  x-data="formulirPermohonan(@js($fieldMap), @js(old('tambahan', [])), '{{ old('surat_type_id') }}')"
+                  class="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
                 @csrf
 
                 <!-- Informasi Pemohon (Read Only) -->
@@ -75,6 +77,7 @@
                     </label>
                     <select id="surat_type_id"
                             name="surat_type_id"
+                            x-model="jenisSuratId"
                             class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm"
                             required>
                         <option value="">-- Pilih Salah Satu Jenis Surat --</option>
@@ -88,6 +91,47 @@
                         <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                     @enderror
                 </div>
+
+                <!-- Data Tambahan Khusus Jenis Surat Terpilih (mis. batas tanah) -->
+                <template x-if="activeFields.length > 0">
+                    <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3.5 sm:p-5">
+                        <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z"></path>
+                            </svg>
+                            Data Tambahan untuk Surat Ini
+                        </h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3">
+                            Isian berikut khusus untuk jenis surat yang Anda pilih. Data akan dicetak pada surat.
+                        </p>
+
+                        <div class="space-y-4">
+                            <template x-for="field in activeFields" :key="field.kode">
+                                <div>
+                                    <label :for="'tambahan_' + field.kode" class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">
+                                        <span x-text="field.label"></span><span x-show="field.wajib" class="text-red-500"> *</span>
+                                    </label>
+
+                                    <template x-if="field.tipe === 'textarea'">
+                                        <textarea :id="'tambahan_' + field.kode"
+                                                  :name="'tambahan[' + field.kode + ']'"
+                                                  rows="3"
+                                                  :value="nilaiLama(field.kode)"
+                                                  class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm p-3 transition shadow-sm"></textarea>
+                                    </template>
+
+                                    <template x-if="field.tipe !== 'textarea'">
+                                        <input :id="'tambahan_' + field.kode"
+                                               :name="'tambahan[' + field.kode + ']'"
+                                               :type="field.tipe === 'date' ? 'date' : 'text'"
+                                               :value="nilaiLama(field.kode)"
+                                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm">
+                                    </template>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
 
                 <!-- Alamat Domisili -->
                 <div>
@@ -140,4 +184,23 @@
             </form>
         </div>
     </div>
+
+    <script>
+    function formulirPermohonan(fieldMap, oldTambahan, jenisSuratId) {
+        return {
+            fieldMap: fieldMap || {},
+            oldTambahan: oldTambahan || {},
+            jenisSuratId: jenisSuratId ? String(jenisSuratId) : '',
+
+            get activeFields() {
+                const fields = this.fieldMap[this.jenisSuratId];
+                return Array.isArray(fields) ? fields : [];
+            },
+
+            nilaiLama(kode) {
+                return (this.oldTambahan && this.oldTambahan[kode]) || '';
+            },
+        };
+    }
+    </script>
 </x-app-layout>

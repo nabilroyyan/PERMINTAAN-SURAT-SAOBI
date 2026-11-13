@@ -83,7 +83,7 @@ class SuratTemplateRenderer
 
         $tanggalSurat = $tanggalSurat ? $tanggalSurat->copy() : now();
 
-        return [
+        $variables = [
             'nama' => $data['nama'] ?? $penduduk?->nama_lengkap ?? $surat->user?->name ?? '-',
             'nik' => $data['nik'] ?? $penduduk?->nik ?? $surat->user?->nik ?? '-',
             'tempat_lahir' => $data['tempat_lahir'] ?? $penduduk?->tempat_lahir ?? '-',
@@ -109,6 +109,35 @@ class SuratTemplateRenderer
             'nip_kepala_desa' => $desa?->nip_kepala_desa ?? '-',
             'alamat_desa' => $desa?->alamat ?? '-',
         ];
+
+        // Gabungkan variabel tambahan yang diisi pemohon (mis. batas tanah sebelah barat/timur)
+        $tambahan = $data['tambahan'] ?? [];
+        if (is_array($tambahan)) {
+            foreach ($tambahan as $key => $value) {
+                if (is_string($key) && $key !== '' && !array_key_exists($key, $variables)) {
+                    $variables[$key] = (string) ($value ?? '-');
+                }
+            }
+        }
+
+        return $variables;
+    }
+
+    /**
+     * Daftar nama variabel bawaan yang tidak boleh dipakai ulang oleh variabel tambahan.
+     */
+    public static function reservedKeys(): array
+    {
+        $keys = [];
+
+        foreach (self::availableVariables() as $group) {
+            $keys = array_merge($keys, array_keys($group));
+        }
+
+        $keys[] = 'tabel_pemohon';
+        $keys[] = 'tambahan';
+
+        return array_values(array_unique($keys));
     }
 
     /**

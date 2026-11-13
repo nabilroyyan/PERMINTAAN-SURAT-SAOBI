@@ -45,7 +45,7 @@ class SuratManagementController extends Controller
 
     public function show(SuratRequest $suratRequest)
     {
-        $suratRequest->load(['user', 'suratType', 'statusHistories.user']);
+        $suratRequest->load(['user', 'suratType.template', 'statusHistories.user']);
         $villageSetting = VillageSetting::first();
 
         // Default nomor surat otomatis sesuai format jenis surat, namun tetap bisa diedit manual

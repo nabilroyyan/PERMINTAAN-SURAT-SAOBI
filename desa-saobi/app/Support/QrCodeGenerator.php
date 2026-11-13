@@ -14,6 +14,12 @@ class QrCodeGenerator
      */
     public static function svg(string $content, int $size = 180, int $margin = 0): string
     {
+        if (!class_exists(SvgImageBackEnd::class)) {
+            throw new \RuntimeException(
+                'Library QR (bacon/bacon-qr-code) belum terpasang. Jalankan: composer install'
+            );
+        }
+
         $renderer = new ImageRenderer(
             new RendererStyle($size, $margin),
             new SvgImageBackEnd()
@@ -24,9 +30,16 @@ class QrCodeGenerator
 
     /**
      * Hasilkan QR code sebagai data URI SVG agar dapat ditanam langsung pada PDF.
+     * Mengembalikan null bila QR tidak dapat dibuat, supaya surat/pratinjau tetap tampil.
      */
-    public static function svgDataUri(string $content, int $size = 180, int $margin = 0): string
+    public static function svgDataUri(string $content, int $size = 180, int $margin = 0): ?string
     {
-        return 'data:image/svg+xml;base64,' . base64_encode(self::svg($content, $size, $margin));
+        try {
+            return 'data:image/svg+xml;base64,' . base64_encode(self::svg($content, $size, $margin));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
     }
 }

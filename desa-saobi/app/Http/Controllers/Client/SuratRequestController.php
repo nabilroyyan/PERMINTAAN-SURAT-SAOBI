@@ -24,10 +24,16 @@ class SuratRequestController extends Controller
     public function create()
     {
         $jenisSurat = SuratType::where('is_active', true)
+            ->with('template')
             ->orderBy('nama')
             ->get();
 
-        return view('client.surat.create', compact('jenisSurat'));
+        // Peta variabel tambahan (yang harus diisi pemohon) per jenis surat
+        $fieldMap = $jenisSurat->mapWithKeys(function ($jenis) {
+            return [$jenis->id => ($jenis->template?->variabel_tambahan ?? [])];
+        });
+
+        return view('client.surat.create', compact('jenisSurat', 'fieldMap'));
     }
 
     public function store(Request $request)
@@ -39,12 +45,38 @@ class SuratRequestController extends Controller
         ]);
 
         $jenisSurat = SuratType::where('is_active', true)
+            ->with('template')
             ->findOrFail($validated['surat_type_id']);
+
+        $fieldTambahan = $jenisSurat->template?->variabel_tambahan ?? [];
+
+        if (!empty($fieldTambahan)) {
+            $rules = [];
+            $attributes = [];
+
+            foreach ($fieldTambahan as $field) {
+                $kode = $field['kode'];
+                $rules["tambahan.{$kode}"] = [
+                    ($field['wajib'] ?? false) ? 'required' : 'nullable',
+                    ($field['tipe'] ?? 'text') === 'date' ? 'date' : 'string',
+                    'max:2000',
+                ];
+                $attributes["tambahan.{$kode}"] = $field['label'] ?? $kode;
+            }
+
+            $request->validate($rules, [], $attributes);
+        }
+
+        $tambahan = [];
+        foreach ($fieldTambahan as $field) {
+            $tambahan[$field['kode']] = $request->input("tambahan.{$field['kode']}");
+        }
 
         $permohonan = DB::transaction(function () use (
             $request,
             $validated,
-            $jenisSurat
+            $jenisSurat,
+            $tambahan
         ) {
             $penduduk = $request->user()->penduduk;
             $surat = SuratRequest::create([
@@ -64,6 +96,7 @@ class SuratRequestController extends Controller
                     'rw' => $penduduk?->rw,
                     'alamat' => $validated['alamat'],
                     'keperluan' => $validated['keperluan'],
+                    'tambahan' => $tambahan,
                 ],
                 'status' => 'pending',
             ]);
@@ -89,7 +122,7 @@ class SuratRequestController extends Controller
             404
         );
 
-        $suratRequest->load('suratType', 'statusHistories');
+        $suratRequest->load('suratType.template', 'statusHistories');
 
         return view('client.surat.show', compact('suratRequest'));
     }
