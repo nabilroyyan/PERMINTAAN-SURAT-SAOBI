@@ -14,11 +14,7 @@
             <!-- Rotating Spinner Ring -->
             <div class="absolute inset-0 rounded-full border-[3px] border-emerald-100 border-t-emerald-600 animate-spin"></div>
             <!-- Center Glowing Emblem -->
-            <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white shadow-md shadow-emerald-600/30 animate-pulse">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo_desa_saobi.png') }}" alt="Logo Desa Saobi" class="w-10 h-10 object-contain shrink-0 animate-pulse">
         </div>
 
         <!-- Dynamic Context Title -->

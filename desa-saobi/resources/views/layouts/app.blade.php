@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Layanan Surat Desa Saobi') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logo_desa_saobi.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">

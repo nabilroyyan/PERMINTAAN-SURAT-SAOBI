@@ -6,7 +6,7 @@
                     Master Data Kependudukan Desa Saobi
                 </h2>
                 <p class="text-sm text-slate-500 mt-1">
-                    Kelola data resmi warga, import database kependudukan, dan atur hak akses / role akun (Warga, Admin, Kepala Desa)
+                    Kelola data resmi warga, import database kependudukan, dan atur hak akses / role akun (Warga, Admin)
                 </p>
             </div>
             <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
@@ -81,7 +81,7 @@
                     </div>
                 </div>
                 <p class="text-[11px] text-slate-400 mt-4 leading-relaxed">
-                    Setiap administrator dan kepala desa merupakan penduduk Desa Saobi. Anda dapat mengatur role akun penduduk langsung pada tabel di bawah.
+                    Setiap administrator merupakan penduduk Desa Saobi. Anda dapat mengatur role akun penduduk langsung pada tabel di bawah.
                 </p>
             </div>
 
@@ -271,7 +271,7 @@
                                                     password: '{{ $userObj ? addslashes($userObj->password_plain ?? '') : '' }}'
                                                 })"
                                                 class="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition"
-                                                title="Atur Hak Akses / Role (Warga, Admin, Kepala Desa)">
+                                                title="Atur Hak Akses / Role (Warga, Admin)">
                                             <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                                             </svg>
@@ -347,12 +347,12 @@
                     @csrf
                     @method('PUT')
 
-                    <!-- Pilihan Role (Warga, Admin, Kepala Desa) -->
+                    <!-- Pilihan Role (Warga, Admin) -->
                     <div>
                         <label class="block text-xs font-bold text-slate-700 uppercase mb-2">
                             Pilih Hak Akses / Role Sistem:
                         </label>
-                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             <!-- Warga -->
                             <label class="cursor-pointer">
                                 <input type="radio" name="role" value="warga" x-model="activeRole" class="peer sr-only">
@@ -368,15 +368,6 @@
                                 <div class="p-3 rounded-xl border border-slate-200 text-center peer-checked:border-purple-600 peer-checked:bg-purple-50/70 peer-checked:text-purple-900 transition">
                                     <div class="text-xs font-bold">Admin</div>
                                     <div class="text-[10px] text-slate-500 mt-0.5 leading-tight">Kelola Sistem</div>
-                                </div>
-                            </label>
-
-                            <!-- Kepala Desa -->
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="kepala_desa" x-model="activeRole" class="peer sr-only">
-                                <div class="p-3 rounded-xl border border-slate-200 text-center peer-checked:border-amber-600 peer-checked:bg-amber-50/70 peer-checked:text-amber-900 transition">
-                                    <div class="text-xs font-bold">Kepala Desa</div>
-                                    <div class="text-[10px] text-slate-500 mt-0.5 leading-tight">Pengesahan / TTD</div>
                                 </div>
                             </label>
                         </div>

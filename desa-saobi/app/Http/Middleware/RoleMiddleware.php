@@ -30,11 +30,6 @@ class RoleMiddleware
                     $allowed = true;
                     break 2;
                 }
-                // Jika rute butuh role admin, Kepala Desa juga diberikan akses panel admin
-                if ($singleRole === 'admin' && ($userRoleStr === 'admin' || $userRoleStr === 'kepala_desa')) {
-                    $allowed = true;
-                    break 2;
-                }
                 // Kompatibilitas warga dan client
                 if (($singleRole === 'client' || $singleRole === 'warga') && ($userRoleStr === 'warga' || $userRoleStr === 'client')) {
                     $allowed = true;

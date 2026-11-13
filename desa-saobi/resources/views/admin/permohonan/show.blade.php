@@ -123,7 +123,52 @@
 
                 <!-- Bagian Penerbitan Surat & Input Nomor Surat Resmi (Hanya jika belum completed) -->
                 @if ($suratRequest->status !== 'completed' && $suratRequest->status !== 'rejected')
-                    <div class="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6 sm:p-8">
+                    <div x-data="{ mode: '{{ $errors->has('catatan_admin') ? 'tolak' : 'terbit' }}' }"
+                         class="bg-white rounded-2xl border border-emerald-200 shadow-sm p-6 sm:p-8">
+                        <!-- Pilihan aksi -->
+                        <div class="grid grid-cols-2 gap-3 mb-6">
+                            <button type="button" @click="mode = 'terbit'"
+                                    :class="mode === 'terbit' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50'"
+                                    class="py-2.5 px-4 border font-bold text-xs sm:text-sm rounded-xl transition">
+                                Terbitkan Surat
+                            </button>
+                            <button type="button" @click="mode = 'tolak'"
+                                    :class="mode === 'tolak' ? 'bg-red-600 text-white border-red-600' : 'bg-white text-red-700 border-red-200 hover:bg-red-50'"
+                                    class="py-2.5 px-4 border font-bold text-xs sm:text-sm rounded-xl transition">
+                                Tolak Permohonan
+                            </button>
+                        </div>
+
+                        <!-- Form Tolak -->
+                        <div x-show="mode === 'tolak'" x-cloak>
+                            <div class="mb-5">
+                                <h3 class="text-base font-bold text-slate-800">Tolak Permohonan</h3>
+                                <p class="text-xs text-slate-500">Berikan alasan penolakan agar warga mengetahui penyebabnya.</p>
+                            </div>
+                            <form action="{{ route('admin.permohonan.status', $suratRequest) }}" method="POST" class="space-y-4">
+                                @csrf
+                                @method('PATCH')
+                                <input type="hidden" name="status" value="rejected">
+                                <div>
+                                    <label for="catatan_admin" class="block text-xs font-bold text-slate-700 uppercase mb-1">
+                                        Alasan Penolakan <span class="text-red-500">*</span>
+                                    </label>
+                                    <textarea name="catatan_admin" id="catatan_admin" rows="4" required maxlength="2000"
+                                              placeholder="Tulis alasan permohonan ditolak..."
+                                              class="w-full rounded-xl border-slate-300 focus:border-red-500 focus:ring-red-500 text-sm p-3">{{ old('catatan_admin') }}</textarea>
+                                    @error('catatan_admin')
+                                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                                <button type="submit"
+                                        onclick="return confirm('Yakin menolak permohonan ini? Alasan akan ditampilkan kepada warga.')"
+                                        class="w-full py-3 px-4 bg-red-600 hover:bg-red-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md shadow-red-600/20 transition">
+                                    Tolak Permohonan
+                                </button>
+                            </form>
+                        </div>
+
+                        <div x-show="mode === 'terbit'">
                         <div class="flex items-center gap-3 border-b border-emerald-100 pb-4 mb-6">
                             <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -204,6 +249,13 @@
                                 Terbitkan Surat & Generate Dokumen PDF
                             </button>
                         </form>
+                        </div>
+                    </div>
+                @elseif ($suratRequest->status === 'rejected')
+                    <div class="bg-white rounded-2xl border border-red-200 shadow-sm p-6 sm:p-8">
+                        <span class="text-xs font-bold uppercase tracking-wider text-red-600">Permohonan Ditolak</span>
+                        <p class="text-xs text-slate-500 mt-2 mb-1">Alasan penolakan:</p>
+                        <p class="text-sm text-slate-800 bg-red-50 border border-red-100 rounded-xl p-3">{{ $suratRequest->catatan_admin ?: '-' }}</p>
                     </div>
                 @else
                     <!-- Info Dokumen Selesai -->
@@ -243,46 +295,6 @@
 
             <!-- Kolom Kanan: Update Status & Timeline (1 Kolom) -->
             <div class="space-y-6">
-                <!-- Form Update Status Admin (Hanya jika belum completed) -->
-                @if ($suratRequest->status !== 'completed')
-                    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
-                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3 mb-4">
-                            Ubah Status Permohonan
-                        </h3>
-
-                        <form action="{{ route('admin.permohonan.status', $suratRequest) }}" method="POST" class="space-y-4">
-                            @csrf
-                            @method('PATCH')
-
-                            <div>
-                                <label for="status" class="block text-xs font-bold text-slate-700 mb-1">Pilih Status Baru</label>
-                                <select name="status" id="status" class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2 px-3">
-                                    <option value="processing" @selected($suratRequest->status === 'processing')>Sedang Diproses (processing)</option>
-                                    <option value="revision" @selected($suratRequest->status === 'revision')>Perlu Revisi Warga (revision)</option>
-                                    <option value="rejected" @selected($suratRequest->status === 'rejected')>Tolak Permohonan (rejected)</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="catatan_admin" class="block text-xs font-bold text-slate-700 mb-1">Catatan / Alasan (Opsional)</label>
-                                <textarea name="catatan_admin"
-                                          id="catatan_admin"
-                                          rows="3"
-                                          placeholder="Tulis alasan jika permohonan ditolak atau perlu revisi..."
-                                          class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs p-2.5">{{ old('catatan_admin', $suratRequest->catatan_admin) }}</textarea>
-                                @error('catatan_admin')
-                                    <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                                @enderror
-                            </div>
-
-                            <button type="submit"
-                                    class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl transition">
-                                Simpan Perubahan Status
-                            </button>
-                        </form>
-                    </div>
-                @endif
-
                 <!-- Timeline Riwayat -->
                 <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-6">
                     <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider border-b border-slate-100 pb-3 mb-4 flex items-center gap-2">

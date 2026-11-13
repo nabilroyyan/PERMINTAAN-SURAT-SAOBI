@@ -225,7 +225,6 @@
                                     class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2 px-3">
                                 <option value="warga" {{ old('role') === 'warga' ? 'selected' : '' }}>Warga Desa</option>
                                 <option value="admin" {{ old('role') === 'admin' ? 'selected' : '' }}>Administrator</option>
-                                <option value="kepala_desa" {{ old('role') === 'kepala_desa' ? 'selected' : '' }}>Kepala Desa</option>
                             </select>
                         </div>
 

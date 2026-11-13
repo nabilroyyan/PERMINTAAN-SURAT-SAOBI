@@ -28,11 +28,7 @@
     <!-- Close button header -->
     <div class="h-16 px-5 flex items-center justify-between border-b border-slate-800/80 bg-slate-950/40">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo_desa_saobi.png') }}" alt="Logo Desa Saobi" class="w-9 h-9 object-contain shrink-0">
             <div>
                 <span class="block text-sm font-extrabold tracking-tight text-white">DESA SAOBI</span>
                 <span class="block text-[10px] font-semibold text-emerald-400 tracking-wider uppercase">Panel Admin</span>
@@ -59,11 +55,7 @@
     <!-- Brand Header -->
     <div class="h-16 px-5 flex items-center border-b border-slate-800/80 bg-slate-950/40">
         <a href="{{ route('admin.dashboard') }}" class="flex items-center gap-3 group">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white shadow-md shadow-emerald-500/25 group-hover:scale-105 transition duration-200">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                </svg>
-            </div>
+            <img src="{{ asset('images/logo_desa_saobi.png') }}" alt="Logo Desa Saobi" class="w-10 h-10 object-contain shrink-0 group-hover:scale-105 transition-transform duration-200">
             <div>
                 <span class="block text-base font-extrabold tracking-tight text-white group-hover:text-emerald-400 transition">
                     DESA SAOBI

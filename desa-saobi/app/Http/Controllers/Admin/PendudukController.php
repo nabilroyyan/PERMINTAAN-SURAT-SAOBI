@@ -70,7 +70,7 @@ class PendudukController extends Controller
             'telepon' => ['nullable', 'string', 'max:20'],
             'email' => ['nullable', 'email', 'max:255', 'unique:users,email'],
             'password' => ['nullable', 'string', 'min:6'],
-            'role' => ['nullable', 'string', 'in:warga,admin,kepala_desa'],
+            'role' => ['nullable', 'string', 'in:warga,admin'],
         ]);
 
         $userId = null;
@@ -210,8 +210,6 @@ class PendudukController extends Controller
                     $roleRaw = strtolower(trim((string) ($row['Q'] ?? '')));
                     if (str_contains($roleRaw, 'admin')) {
                         $roleVal = UserRole::ADMIN->value;
-                    } elseif (str_contains($roleRaw, 'kades') || str_contains($roleRaw, 'kepala')) {
-                        $roleVal = UserRole::KEPALA_DESA->value;
                     } else {
                         $roleVal = UserRole::WARGA->value;
                     }
@@ -329,7 +327,7 @@ class PendudukController extends Controller
             'N1' => 'Nomor HP / WhatsApp',
             'O1' => 'Email Akun Login (Warga)',
             'P1' => 'Password Akun Login (Default: saobi123)',
-            'Q1' => 'Role Akun (warga / admin / kepala_desa)',
+            'Q1' => 'Role Akun (warga / admin)',
         ];
 
         foreach ($headers as $cell => $value) {
@@ -355,7 +353,7 @@ class PendudukController extends Controller
         ]);
         $sheet->getRowDimension(1)->setRowHeight(30);
 
-        // Contoh Data Realistis (Warga, Admin Desa, Kepala Desa)
+        // Contoh Data Realistis (Warga, Admin Desa)
         $sampleData = [
             [
                 '3529061204950001',
@@ -413,25 +411,6 @@ class PendudukController extends Controller
                 'admin@desasaobi.id',
                 'password',
                 'admin',
-            ],
-            [
-                '3529000000000002',
-                '3529060101200003',
-                'H. Mohamad Hasan (Kepala Desa)',
-                'Sumenep',
-                '1980-05-15',
-                'Laki-laki',
-                'Dusun Saobi Tengah RT 01 / RW 02, Desa Saobi, Kec. Kangayan, Kab. Sumenep',
-                'Saobi Tengah',
-                '01',
-                '02',
-                'Islam',
-                'Kepala Desa',
-                'Kawin',
-                '081200000002',
-                'kades@desasaobi.id',
-                'password',
-                'kepala_desa',
             ],
         ];
 
@@ -493,7 +472,7 @@ class PendudukController extends Controller
     }
 
     /**
-     * Mengatur akun login & hak akses / role penduduk (Warga, Admin, Kepala Desa)
+     * Mengatur akun login & hak akses / role penduduk (Warga, Admin)
      */
     public function updateAccount(Request $request, Penduduk $penduduk)
     {

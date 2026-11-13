@@ -6,6 +6,7 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'Layanan Surat Desa Saobi') }}</title>
+        <link rel="icon" type="image/png" href="{{ asset('images/logo_desa_saobi.png') }}">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,14 +22,10 @@
         <div class="w-full max-w-md sm:max-w-lg px-2 sm:px-0 transition-all duration-200">
             <!-- Brand Header -->
             <div class="text-center mb-5 sm:mb-6">
-                <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-700 flex items-center justify-center text-white mx-auto shadow-lg shadow-emerald-600/30">
-                    <svg class="w-8 h-8 sm:w-9 sm:h-9" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                    </svg>
-                </div>
-                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight mt-3 sm:mt-4">
+                <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
                     DESA SAOBI
                 </h1>
+                <img src="{{ asset('images/logo_desa_saobi.png') }}" alt="Logo Desa Saobi" class="w-16 h-auto sm:w-20 object-contain mx-auto mt-3 mb-2">
                 <p class="text-xs text-emerald-700 font-semibold tracking-wider uppercase mt-0.5">
                     Sistem Layanan Surat Mandiri Online
                 </p>

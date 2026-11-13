@@ -56,11 +56,6 @@ class User extends Authenticatable
         return $this->role === UserRole::ADMIN;
     }
 
-    public function isKepalaDesa(): bool
-    {
-        return $this->role === UserRole::KEPALA_DESA;
-    }
-
     public function isWarga(): bool
     {
         return $this->role === UserRole::WARGA;
@@ -68,7 +63,7 @@ class User extends Authenticatable
 
     public function canAccessAdminPanel(): bool
     {
-        return $this->isAdmin() || $this->isKepalaDesa();
+        return $this->isAdmin();
     }
 
     public function getRoleLabelAttribute(): string
