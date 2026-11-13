@@ -16,6 +16,7 @@ class SuratType extends Model
         'nomor_terakhir',
         'panjang_nomor',
         'is_active',
+        'surat_template_id',
     ];
 
     protected function casts(): array
@@ -31,6 +32,11 @@ class SuratType extends Model
     public function suratRequests()
     {
         return $this->hasMany(SuratRequest::class);
+    }
+
+    public function template()
+    {
+        return $this->belongsTo(SuratTemplate::class, 'surat_template_id');
     }
 
     /**

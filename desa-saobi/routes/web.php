@@ -5,10 +5,16 @@ use App\Http\Controllers\Client\SuratRequestController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\SuratManagementController;
 use App\Http\Controllers\Admin\PendudukController;
+use App\Http\Controllers\Admin\SuratTemplateController;
 use App\Http\Controllers\Admin\SuratTypeController;
 use App\Http\Controllers\Admin\VillageSettingController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SuratVerificationController;
 use Illuminate\Support\Facades\Route;
+
+// Halaman publik verifikasi keaslian surat (hasil pindai QR code)
+Route::get('/verifikasi/{token}', [SuratVerificationController::class, 'show'])
+    ->name('surat.verifikasi');
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -50,6 +56,9 @@ Route::middleware(['auth', 'role:client'])
         Route::get('/surat/{suratRequest}', [SuratRequestController::class, 'show'])
             ->name('surat.show');
 
+        Route::get('/surat/{suratRequest}/lihat', [SuratRequestController::class, 'preview'])
+            ->name('surat.preview');
+
         Route::get('/surat/{suratRequest}/download', [SuratRequestController::class, 'download'])
             ->name('surat.download');
 
@@ -79,6 +88,9 @@ Route::middleware(['auth', 'role:admin'])
         Route::post('/permohonan/{suratRequest}/terbitkan', [SuratManagementController::class, 'publish'])
             ->name('permohonan.publish');
 
+        Route::get('/permohonan/{suratRequest}/lihat', [SuratManagementController::class, 'preview'])
+            ->name('permohonan.preview');
+
         Route::get('/permohonan/{suratRequest}/download', [SuratManagementController::class, 'download'])
             ->name('permohonan.download');
 
@@ -107,6 +119,11 @@ Route::middleware(['auth', 'role:admin'])
             ->name('penduduk.account');
 
         Route::resource('jenis-surat', SuratTypeController::class);
+
+        Route::post('/template-surat/preview', [SuratTemplateController::class, 'preview'])
+            ->name('template-surat.preview');
+
+        Route::resource('template-surat', SuratTemplateController::class);
 
         Route::get('/pengaturan', [VillageSettingController::class, 'index'])
             ->name('settings.index');

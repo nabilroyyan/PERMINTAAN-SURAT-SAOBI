@@ -109,9 +109,6 @@
 </head>
 <body>
 @php
-    $kopPath = public_path('images/kop_surat_saobi.jpg');
-    $kopBase64 = file_exists($kopPath) ? 'data:image/jpeg;base64,' . base64_encode(file_get_contents($kopPath)) : '';
-
     $penduduk = $surat->user?->penduduk;
     $namaPemohon = $surat->data_pemohon['nama'] ?? $penduduk?->nama_lengkap ?? $surat->user?->name ?? '-';
     $nikPemohon = $surat->data_pemohon['nik'] ?? $penduduk?->nik ?? $surat->user?->nik ?? '-';
@@ -164,9 +161,7 @@
 @endphp
 
     <!-- KOP SURAT RESMI DESA SAOBI -->
-    @if($kopBase64)
-        <img class="kop-img" src="{{ $kopBase64 }}" alt="Kop Surat Desa Saobi">
-    @endif
+    @include('pdf.partials.kop')
 
     <!-- JUDUL SURAT -->
     <div class="judul-surat">
@@ -255,6 +250,8 @@
 
     <!-- TANDA TANGAN KEPALA DESA -->
     <div class="footer">
+        @include('pdf.partials.qr-verifikasi')
+
         <div class="ttd-box">
             <p class="tanggal">Saobi, {{ $tanggalSurat->locale('id')->translatedFormat('d F Y') }}</p>
             <p class="jabatan">Kepala Desa Saobi</p>

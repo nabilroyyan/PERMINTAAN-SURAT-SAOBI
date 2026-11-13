@@ -100,6 +100,20 @@
                                 <div class="text-xs text-slate-400 mt-0.5 max-w-sm truncate">
                                     {{ $item->deskripsi ?? 'Tidak ada deskripsi' }}
                                 </div>
+                                <div class="mt-1.5">
+                                    @if ($item->template)
+                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 text-[11px] font-semibold" title="Template isi surat dinamis">
+                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z" />
+                                            </svg>
+                                            {{ $item->template->nama }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-50 text-slate-500 border border-slate-200 text-[11px] font-medium">
+                                            Tampilan bawaan
+                                        </span>
+                                    @endif
+                                </div>
                             </td>
                             <td class="px-6 py-4 font-mono font-bold text-xs text-emerald-700">
                                 <span class="bg-emerald-50 text-emerald-800 border border-emerald-200 px-2 py-0.5 rounded-md">

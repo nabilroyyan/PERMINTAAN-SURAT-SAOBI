@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SuratTemplate;
 use App\Models\SuratType;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -11,14 +12,16 @@ class SuratTypeController extends Controller
 {
     public function index()
     {
-        $suratTypes = SuratType::withCount('suratRequests')->latest()->get();
+        $suratTypes = SuratType::withCount('suratRequests')->with('template')->latest()->get();
 
         return view('admin.surat_type.index', compact('suratTypes'));
     }
 
     public function create()
     {
-        return view('admin.surat_type.create');
+        $templates = SuratTemplate::orderBy('nama')->get();
+
+        return view('admin.surat_type.create', compact('templates'));
     }
 
     public function store(Request $request)
@@ -31,6 +34,7 @@ class SuratTypeController extends Controller
             'panjang_nomor' => ['required', 'integer', 'min:1', 'max:6'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
             'persyaratan_text' => ['nullable', 'string'],
+            'surat_template_id' => ['nullable', 'exists:surat_templates,id'],
             'is_active' => ['boolean'],
         ]);
 
@@ -53,6 +57,7 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
+            'surat_template_id' => $validated['surat_template_id'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
 
@@ -62,7 +67,9 @@ class SuratTypeController extends Controller
 
     public function edit(SuratType $jenis_surat)
     {
-        return view('admin.surat_type.edit', ['suratType' => $jenis_surat]);
+        $templates = SuratTemplate::orderBy('nama')->get();
+
+        return view('admin.surat_type.edit', ['suratType' => $jenis_surat, 'templates' => $templates]);
     }
 
     public function update(Request $request, SuratType $jenis_surat)
@@ -75,6 +82,7 @@ class SuratTypeController extends Controller
             'panjang_nomor' => ['required', 'integer', 'min:1', 'max:6'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
             'persyaratan_text' => ['nullable', 'string'],
+            'surat_template_id' => ['nullable', 'exists:surat_templates,id'],
             'is_active' => ['boolean'],
         ]);
 
@@ -97,6 +105,7 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
+            'surat_template_id' => $validated['surat_template_id'] ?? null,
             'is_active' => $request->boolean('is_active', true),
         ]);
 

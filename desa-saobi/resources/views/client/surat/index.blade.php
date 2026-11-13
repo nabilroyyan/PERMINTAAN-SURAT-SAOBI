@@ -93,20 +93,22 @@
                                         @endif
                                     </td>
                                     <td class="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                                        @if ($item->status === 'completed' && $item->file_surat)
+                                            <button type="button"
+                                                    onclick="openSuratPreview('{{ route('client.surat.preview', $item) }}', '{{ route('client.surat.download', $item) }}')"
+                                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                                </svg>
+                                                Lihat &amp; Unduh
+                                            </button>
+                                        @endif
+
                                         <a href="{{ route('client.surat.show', $item) }}"
                                            class="inline-flex items-center px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-lg transition">
                                             Detail & Tracking
                                         </a>
-
-                                        @if ($item->status === 'completed' && $item->file_surat)
-                                            <a href="{{ route('client.surat.download', $item) }}"
-                                               class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition">
-                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
-                                                </svg>
-                                                Unduh PDF
-                                            </a>
-                                        @endif
                                     </td>
                                 </tr>
                             @endforeach

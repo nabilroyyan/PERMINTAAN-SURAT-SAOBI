@@ -108,14 +108,8 @@
     </style>
 </head>
 <body>
-    <!-- KOP SURAT RESMI DESA SAOBI -->
-    <div class="header">
-        <h3>Pemerintah Kabupaten Sumenep</h3>
-        <h3>Kecamatan Kangayan</h3>
-        <h2>Pemerintah Desa Saobi</h2>
-        <p>{{ $desa->alamat ?? 'Jl. Pelabuhan Saobi, Pulau Saobi, Kec. Kangayan, Kab. Sumenep, Jawa Timur 69491' }}</p>
-    </div>
-    <div class="garis-kop"></div>
+    <!-- KOP SURAT RESMI DESA SAOBI (meniru tampilan Surat Keterangan Domisili) -->
+    @include('pdf.partials.kop')
 
     <!-- JUDUL SURAT -->
     <div class="judul-surat">
@@ -165,6 +159,8 @@
 
     <!-- TANDA TANGAN KEPALA DESA -->
     <div class="footer">
+        @include('pdf.partials.qr-verifikasi')
+
         <div class="ttd-box">
             <p style="margin: 0;">Saobi, {{ $tanggalSurat->translatedFormat('d F Y') }}</p>
             <p style="margin: 2px 0 0 0; font-weight: bold;">Kepala Desa Saobi</p>

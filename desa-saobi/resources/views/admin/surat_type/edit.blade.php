@@ -183,6 +183,26 @@
                         <p class="text-[11px] text-slate-500 mt-1">Tuliskan tiap syarat di baris baru.</p>
                     </div>
 
+                    <div>
+                        <label for="surat_template_id" class="block text-xs font-bold text-slate-700 uppercase mb-1.5 sm:mb-2">
+                            Template Isi Surat (Opsional)
+                        </label>
+                        <select name="surat_template_id"
+                                id="surat_template_id"
+                                class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                            <option value="">— Gunakan tampilan bawaan —</option>
+                            @foreach ($templates as $tpl)
+                                <option value="{{ $tpl->id }}" @selected(old('surat_template_id', $suratType->surat_template_id) == $tpl->id)>
+                                    {{ $tpl->nama }}{{ $tpl->is_active ? '' : ' (nonaktif)' }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <p class="text-[11px] text-slate-500 mt-1">
+                            Pilih template agar isi surat mengikuti template tersebut. Kelola di
+                            <a href="{{ route('admin.template-surat.index') }}" class="font-semibold text-emerald-700 hover:underline">Template Isi Surat</a>.
+                        </p>
+                    </div>
+
                     <div class="flex items-start gap-2.5 pt-2">
                         <input type="checkbox"
                                name="is_active"

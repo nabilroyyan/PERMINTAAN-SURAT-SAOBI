@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class SuratRequest extends Model
 {
@@ -15,6 +16,7 @@ class SuratRequest extends Model
         'tanggal_surat',
         'catatan_admin',
         'file_surat',
+        'verification_token',
         'completed_at',
     ];
 
@@ -25,6 +27,27 @@ class SuratRequest extends Model
             'tanggal_surat' => 'date',
             'completed_at' => 'datetime',
         ];
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (SuratRequest $surat) {
+            if (blank($surat->verification_token)) {
+                $surat->verification_token = (string) Str::uuid();
+            }
+        });
+    }
+
+    /**
+     * Tautan halaman verifikasi keaslian surat.
+     */
+    public function verificationUrl(): ?string
+    {
+        if (blank($this->verification_token)) {
+            return null;
+        }
+
+        return route('surat.verifikasi', $this->verification_token);
     }
 
     public function user()

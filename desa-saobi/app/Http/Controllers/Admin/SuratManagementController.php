@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SuratRequest;
 use App\Models\VillageSetting;
+use App\Support\SuratTemplateRenderer;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -64,6 +65,24 @@ class SuratManagementController extends Controller
             . '_' . ($suratRequest->nomor_surat ? str_replace(['/', '\\'], '-', $suratRequest->nomor_surat) : $suratRequest->id) . '.pdf';
 
         return Storage::disk('public')->download($suratRequest->file_surat, $nama);
+    }
+
+    /**
+     * Tampilkan berkas surat langsung di layar (inline) untuk dilihat sebelum diunduh.
+     */
+    public function preview(SuratRequest $suratRequest)
+    {
+        if (blank($suratRequest->file_surat) || !Storage::disk('public')->exists($suratRequest->file_surat)) {
+            abort(404, 'File surat tidak ditemukan.');
+        }
+
+        $nama = str_replace(' ', '_', $suratRequest->suratType->nama ?? 'Surat')
+            . '_' . ($suratRequest->nomor_surat ? str_replace(['/', '\\'], '-', $suratRequest->nomor_surat) : $suratRequest->id) . '.pdf';
+
+        return response()->file(Storage::disk('public')->path($suratRequest->file_surat), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $nama . '"',
+        ]);
     }
 
     public function updateStatus(
@@ -142,22 +161,51 @@ class SuratManagementController extends Controller
             'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
         ]);
 
-        $suratRequest->load(['user.penduduk', 'suratType']);
+        $suratRequest->load(['user.penduduk', 'suratType.template']);
 
         DB::transaction(function () use ($request, $suratRequest, $validated, $villageSetting) {
-            $viewName = 'pdf.surat';
-            $kode = strtolower($suratRequest->suratType->kode ?? '');
-            if ($kode && view()->exists("pdf.surat-{$kode}")) {
-                $viewName = "pdf.surat-{$kode}";
+            $tanggalSurat = Carbon::parse($validated['tanggal_surat']);
+
+            // Gunakan template isi surat dinamis bila jenis surat memilikinya.
+            // Jika tidak, tetap gunakan tampilan bawaan berbasis view.
+            $kontenTemplate = $suratRequest->suratType?->template?->konten;
+
+            if (filled($kontenTemplate)) {
+                $isiSurat = SuratTemplateRenderer::render(
+                    $kontenTemplate,
+                    SuratTemplateRenderer::variables(
+                        $suratRequest,
+                        $villageSetting,
+                        $validated['nomor_surat'],
+                        $tanggalSurat
+                    )
+                );
+
+                $viewName = 'pdf.surat-dinamis';
+                $viewData = [
+                    'surat' => $suratRequest,
+                    'desa' => $villageSetting,
+                    'nomorSurat' => $validated['nomor_surat'],
+                    'tanggalSurat' => $tanggalSurat,
+                    'isiSurat' => $isiSurat,
+                ];
+            } else {
+                $viewName = 'pdf.surat';
+                $kode = strtolower($suratRequest->suratType?->kode ?? '');
+                if ($kode && view()->exists("pdf.surat-{$kode}")) {
+                    $viewName = "pdf.surat-{$kode}";
+                }
+
+                $viewData = [
+                    'surat' => $suratRequest,
+                    'desa' => $villageSetting,
+                    'nomorSurat' => $validated['nomor_surat'],
+                    'tanggalSurat' => $tanggalSurat,
+                ];
             }
 
             // Generate PDF
-            $pdf = Pdf::loadView($viewName, [
-                'surat' => $suratRequest,
-                'desa' => $villageSetting,
-                'nomorSurat' => $validated['nomor_surat'],
-                'tanggalSurat' => Carbon::parse($validated['tanggal_surat']),
-            ]);
+            $pdf = Pdf::loadView($viewName, $viewData);
 
             // Save PDF to public storage
             $fileName = 'surat_' . $suratRequest->id . '_' . time() . '.pdf';

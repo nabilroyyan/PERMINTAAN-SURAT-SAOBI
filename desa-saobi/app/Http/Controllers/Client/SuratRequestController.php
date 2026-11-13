@@ -114,4 +114,32 @@ class SuratRequestController extends Controller
 
         return Storage::disk('public')->download($suratRequest->file_surat, $namaFileDownload);
     }
+
+    /**
+     * Tampilkan berkas surat langsung di layar (inline) untuk dilihat sebelum diunduh.
+     */
+    public function preview(Request $request, SuratRequest $suratRequest)
+    {
+        abort_unless(
+            $suratRequest->user_id === $request->user()->id,
+            403,
+            'Anda tidak memiliki akses ke surat ini.'
+        );
+
+        if ($suratRequest->status !== 'completed' || blank($suratRequest->file_surat)) {
+            abort(404, 'Surat belum selesai diterbitkan atau file tidak ditemukan.');
+        }
+
+        if (!Storage::disk('public')->exists($suratRequest->file_surat)) {
+            abort(404, 'File surat fisik tidak ditemukan di sistem.');
+        }
+
+        $nama = str_replace(' ', '_', $suratRequest->suratType->nama ?? 'Surat')
+            . '_' . ($suratRequest->nomor_surat ? str_replace(['/', '\\'], '-', $suratRequest->nomor_surat) : $suratRequest->id) . '.pdf';
+
+        return response()->file(Storage::disk('public')->path($suratRequest->file_surat), [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'inline; filename="' . $nama . '"',
+        ]);
+    }
 }

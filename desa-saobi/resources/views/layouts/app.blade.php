@@ -77,6 +77,8 @@
                     </div>
                 </footer>
             </div>
+
+            @include('layouts.partials.surat-preview')
         </body>
     @else
         <!-- Standard Layout (Citizen / Guest) -->
@@ -137,6 +139,8 @@
                     <p class="text-emerald-700 font-medium">Sistem Permintaan & Layanan Surat Mandiri Online</p>
                 </div>
             </footer>
+
+            @include('layouts.partials.surat-preview')
         </body>
     @endif
 </html>
