@@ -25,8 +25,9 @@ class SuratTemplateController extends Controller
     {
         $variableGroups = SuratTemplateRenderer::availableVariables();
         $defaultKonten = $this->defaultKonten();
+        $customVariables = [];
 
-        return view('admin.template_surat.create', compact('variableGroups', 'defaultKonten'));
+        return view('admin.template_surat.create', compact('variableGroups', 'defaultKonten', 'customVariables'));
     }
 
     public function store(Request $request)
@@ -41,9 +42,21 @@ class SuratTemplateController extends Controller
     {
         $variableGroups = SuratTemplateRenderer::availableVariables();
 
+        // Variabel didapat dari "Formulir Isian Warga" pada template ini
+        // (isi surat yang harus diinput warga), dilihat langsung dari variabel_tambahan.
+        $customVariables = [];
+
+        foreach ($template_surat->formFields() as $field) {
+            $kode = trim((string) ($field['kode'] ?? ''));
+            if ($kode !== '') {
+                $customVariables[$kode] = $field['label'] ?? $kode;
+            }
+        }
+
         return view('admin.template_surat.edit', [
             'template' => $template_surat,
             'variableGroups' => $variableGroups,
+            'customVariables' => $customVariables,
         ]);
     }
 
@@ -74,6 +87,19 @@ class SuratTemplateController extends Controller
         $konten = (string) $request->input('konten', '');
         $judul = $request->input('judul') ?: 'Surat Keterangan Contoh';
 
+        // Nilai contoh untuk variabel isian (diisi warga) agar tampil di pratinjau
+        $rawCustom = json_decode((string) $request->input('variabel_tambahan_json', '[]'), true);
+        $tambahanContoh = [];
+        if (is_array($rawCustom)) {
+            foreach ($rawCustom as $item) {
+                $kode = trim((string) (is_array($item) ? ($item['kode'] ?? '') : $item));
+                $label = is_array($item) ? ($item['label'] ?? $kode) : $kode;
+                if ($kode !== '') {
+                    $tambahanContoh[$kode] = 'Contoh ' . ($label ?: $kode);
+                }
+            }
+        }
+
         $desa = VillageSetting::first() ?? new VillageSetting([
             'nama_desa' => 'Desa Saobi',
         ]);
@@ -93,7 +119,7 @@ class SuratTemplateController extends Controller
                 'rw' => '02',
                 'alamat' => 'Dusun Saobi Timur RT 01 / RW 02',
                 'keperluan' => 'Melengkapi persyaratan administrasi',
-                'tambahan' => [],
+                'tambahan' => $tambahanContoh,
             ],
             'verification_token' => 'contoh-token-pratinjau',
         ]);
@@ -132,6 +158,10 @@ class SuratTemplateController extends Controller
 
         $validated['is_active'] = $request->boolean('is_active');
         $validated['konten'] = $validated['konten'] ?? '';
+
+        // Isi surat yang diinput warga (definisi field) — dari "Formulir Isian Warga" pada template
+        $rawVariabel = json_decode((string) $request->input('variabel_tambahan_json', '[]'), true);
+        $validated['variabel_tambahan'] = \App\Support\FormFieldSchema::normalize(is_array($rawVariabel) ? $rawVariabel : []);
 
         return $validated;
     }

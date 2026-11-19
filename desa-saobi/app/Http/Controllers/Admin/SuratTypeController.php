@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SuratTemplate;
 use App\Models\SuratType;
-use App\Support\FormFieldSchema;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -34,21 +33,11 @@ class SuratTypeController extends Controller
             'nomor_terakhir' => ['required', 'integer', 'min:0'],
             'panjang_nomor' => ['required', 'integer', 'min:1', 'max:6'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
-            'persyaratan_text' => ['nullable', 'string'],
             'surat_template_id' => ['nullable', 'exists:surat_templates,id'],
             'is_active' => ['boolean'],
         ]);
 
-        $persyaratan = [];
-        if (!empty($validated['persyaratan_text'])) {
-            $lines = explode("\n", $validated['persyaratan_text']);
-            foreach ($lines as $line) {
-                $trimmed = trim($line);
-                if (!empty($trimmed)) {
-                    $persyaratan[] = $trimmed;
-                }
-            }
-        }
+        $persyaratan = $this->normalizePersyaratan($request);
 
         SuratType::create([
             'nama' => $validated['nama'],
@@ -58,7 +47,6 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
-            'form_fields' => $this->formFields($request),
             'surat_template_id' => $validated['surat_template_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -83,21 +71,11 @@ class SuratTypeController extends Controller
             'nomor_terakhir' => ['required', 'integer', 'min:0'],
             'panjang_nomor' => ['required', 'integer', 'min:1', 'max:6'],
             'deskripsi' => ['nullable', 'string', 'max:1000'],
-            'persyaratan_text' => ['nullable', 'string'],
             'surat_template_id' => ['nullable', 'exists:surat_templates,id'],
             'is_active' => ['boolean'],
         ]);
 
-        $persyaratan = [];
-        if (!empty($validated['persyaratan_text'])) {
-            $lines = explode("\n", $validated['persyaratan_text']);
-            foreach ($lines as $line) {
-                $trimmed = trim($line);
-                if (!empty($trimmed)) {
-                    $persyaratan[] = $trimmed;
-                }
-            }
-        }
+        $persyaratan = $this->normalizePersyaratan($request);
 
         $jenis_surat->update([
             'nama' => $validated['nama'],
@@ -107,7 +85,6 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
-            'form_fields' => $this->formFields($request),
             'surat_template_id' => $validated['surat_template_id'] ?? null,
             'is_active' => $request->boolean('is_active'),
         ]);
@@ -116,11 +93,34 @@ class SuratTypeController extends Controller
             ->with('success', 'Format penomoran untuk ' . $jenis_surat->nama . ' berhasil diperbarui.');
     }
 
-    private function formFields(Request $request): array
+    /**
+     * Normalisasi persyaratan dari input JSON menjadi [['nama'=>..., 'wajib'=>bool], ...].
+     */
+    private function normalizePersyaratan(Request $request): array
     {
-        $raw = json_decode((string) $request->input('form_fields_json', '[]'), true);
+        $raw = json_decode((string) $request->input('persyaratan_json', '[]'), true);
 
-        return FormFieldSchema::normalize(is_array($raw) ? $raw : []);
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($raw as $item) {
+            if (is_array($item)) {
+                $nama = trim((string) ($item['nama'] ?? ''));
+                $wajib = (bool) ($item['wajib'] ?? false);
+            } else {
+                $nama = trim((string) $item);
+                $wajib = false;
+            }
+
+            if ($nama !== '') {
+                $items[] = ['nama' => $nama, 'wajib' => $wajib];
+            }
+        }
+
+        return $items;
     }
 
     public function destroy(SuratType $jenis_surat)

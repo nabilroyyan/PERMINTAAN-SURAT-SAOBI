@@ -8,6 +8,7 @@
      x-data="templateEditor(@js([
         'konten' => $contentValue,
         'judul' => $namaValue,
+        'customVariables' => $customVariables ?? [],
         'previewUrl' => route('admin.template-surat.preview'),
         'csrf' => csrf_token(),
      ]))">
@@ -111,6 +112,12 @@
                     </div>
                 </div>
 
+                <!-- Formulir Isian Warga (Dinamis) — isi surat yang harus diinput warga -->
+                @include('admin.surat_type.partials.form-builder', [
+                    'fields' => $template?->formFields() ?? [],
+                    'fieldName' => 'variabel_tambahan_json',
+                ])
+
             </div>
 
             <!-- Kolom Panel Variabel -->
@@ -145,11 +152,25 @@
 
                         <div class="pt-2 border-t border-white/10">
                             <p class="text-[10px] font-bold uppercase tracking-wider text-emerald-300/80 mb-1.5">
-                                Variabel Isian Jenis Surat
+                                Variabel Isian Warga
                             </p>
-                            <p class="text-[11px] text-emerald-200/70 leading-relaxed">
-                                Kode isian yang dibuat pada <strong>Jenis Surat &rarr; Formulir Isian Warga</strong> dapat ditulis manual di sini, misalnya <code class="font-mono">{nama_ayah}</code>.
-                            </p>
+                            <template x-if="$store.tplFields && $store.tplFields.items.length > 0">
+                                <div class="flex flex-wrap gap-1.5">
+                                    <template x-for="(f, i) in $store.tplFields.items" :key="i">
+                                        <button type="button"
+                                                @click="insertTag(f.kode)"
+                                                :title="f.label"
+                                                class="px-2 py-1 bg-emerald-500/20 hover:bg-emerald-500/40 text-emerald-50 border border-emerald-400/30 rounded-md font-mono text-[11px] font-semibold transition active:scale-95">
+                                            <span x-text="'{' + f.kode + '}'"></span>
+                                        </button>
+                                    </template>
+                                </div>
+                            </template>
+                            <template x-if="!($store.tplFields && $store.tplFields.items.length > 0)">
+                                <p class="text-[11px] text-emerald-200/70 leading-relaxed">
+                                    Belum ada isian. Tambahkan field pada <strong>Formulir Isian Warga (Dinamis)</strong> di halaman ini, lalu variabelnya otomatis muncul di sini.
+                                </p>
+                            </template>
                         </div>
                     </div>
                 </div>
@@ -209,12 +230,20 @@ function templateEditor(config) {
     return {
         konten: config.konten || '',
         judul: config.judul || '',
+        customVariables: config.customVariables || {},
         previewUrl: config.previewUrl,
         csrf: config.csrf,
         previewOpen: false,
         previewLoading: false,
         previewError: '',
         previewHtml: '',
+
+        init() {
+            // Store bersama untuk variabel isian warga (dari builder pada halaman ini)
+            if (window.Alpine && !window.Alpine.store('tplFields')) {
+                window.Alpine.store('tplFields', { items: [] });
+            }
+        },
 
         insertTag(tag) {
             const el = this.$refs.kontenField;
@@ -249,6 +278,9 @@ function templateEditor(config) {
                     body: JSON.stringify({
                         konten: this.konten,
                         judul: this.judul,
+                        variabel_tambahan_json: JSON.stringify(
+                            Object.entries(this.customVariables || {}).map(([kode, label]) => ({ kode, label }))
+                        ),
                     }),
                 });
 

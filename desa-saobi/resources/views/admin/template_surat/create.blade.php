@@ -23,6 +23,7 @@
         'template' => null,
         'variableGroups' => $variableGroups,
         'defaultKonten' => $defaultKonten,
+        'customVariables' => $customVariables,
         'submitLabel' => 'Simpan Template Baru',
     ])
 </x-app-layout>

@@ -23,6 +23,7 @@
         'template' => $template,
         'variableGroups' => $variableGroups,
         'defaultKonten' => null,
+        'customVariables' => $customVariables,
         'submitLabel' => 'Simpan Perubahan Template',
     ])
 </x-app-layout>

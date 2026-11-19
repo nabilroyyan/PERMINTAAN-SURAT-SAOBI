@@ -35,7 +35,7 @@
 
             <!-- Error Notification -->
             @if ($errors->any())
-                <div class="p-4 mx-4 sm:mx-6 mt-4 sm:mt-6 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+                <div id="form-errors" class="p-4 mx-4 sm:mx-6 mt-4 sm:mt-6 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm scroll-mt-24">
                     <p class="font-semibold mb-1 text-xs sm:text-sm">Periksa kembali isian formulir Anda:</p>
                     <ul class="list-disc list-inside space-y-1 text-xs">
                         @foreach ($errors->all() as $error)
@@ -43,6 +43,12 @@
                         @endforeach
                     </ul>
                 </div>
+                <script>
+                    document.addEventListener('DOMContentLoaded', function () {
+                        var el = document.getElementById('form-errors');
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    });
+                </script>
             @endif
 
             <form action="{{ route('client.surat.store') }}" method="POST" enctype="multipart/form-data"
@@ -92,15 +98,35 @@
                     @enderror
                 </div>
 
-                <!-- Persyaratan Dokumen (info) -->
+                <!-- Persyaratan Dokumen (unggah berkas, opsional) -->
                 <template x-if="activeSyarat.length > 0">
-                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 sm:p-4">
-                        <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">Persyaratan Dokumen</h4>
-                        <ul class="list-disc list-inside space-y-1 text-xs text-amber-900">
+                    <div class="bg-amber-50/60 border border-amber-200/80 rounded-xl p-3.5 sm:p-5">
+                        <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+                            </svg>
+                            Persyaratan Dokumen
+                        </h4>
+                        <p class="text-[11px] sm:text-xs text-slate-500 mb-3">
+                            Unggah berkas persyaratan di bawah ini. Yang bertanda <span class="text-red-500 font-bold">*</span> <strong>wajib</strong> diunggah; sisanya opsional.
+                        </p>
+
+                        <div class="space-y-4">
                             <template x-for="(syarat, i) in activeSyarat" :key="i">
-                                <li x-text="syarat"></li>
+                                <div>
+                                    <label :for="'syarat_' + i" class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">
+                                        <span x-text="syarat.nama"></span>
+                                        <span x-show="syarat.wajib" class="text-red-500">*</span>
+                                        <span x-show="!syarat.wajib" class="text-[11px] font-normal text-slate-400">(Opsional)</span>
+                                    </label>
+                                    <input type="file" :id="'syarat_' + i" :name="'syarat[' + i + ']'"
+                                           :required="syarat.wajib"
+                                           accept="image/png,image/jpeg,application/pdf"
+                                           class="block w-full text-xs sm:text-sm text-slate-500 file:mr-3 sm:file:mr-4 file:py-2 file:px-3 sm:file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-amber-50 file:text-amber-700 hover:file:bg-amber-100 bg-white border border-slate-200 rounded-xl p-1.5 transition">
+                                    <p class="text-[11px] text-slate-400 mt-1">Format: JPG, PNG, atau PDF (maks. 2 MB).</p>
+                                </div>
                             </template>
-                        </ul>
+                        </div>
                     </div>
                 </template>
 

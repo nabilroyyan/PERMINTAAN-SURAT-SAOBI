@@ -41,6 +41,52 @@ class SuratType extends Model
         return is_array($fields) ? $fields : [];
     }
 
+    /**
+     * Daftar persyaratan seragam: [['nama' => string, 'wajib' => bool], ...].
+     * Mendukung data lama (array string) maupun format baru (array objek).
+     */
+    public function persyaratanItems(): array
+    {
+        $raw = $this->persyaratan;
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($raw as $item) {
+            if (is_array($item)) {
+                $nama = trim((string) ($item['nama'] ?? $item['label'] ?? ''));
+                $wajib = (bool) ($item['wajib'] ?? false);
+            } elseif (is_string($item)) {
+                $nama = trim($item);
+                $wajib = false;
+            } else {
+                continue;
+            }
+
+            if ($nama !== '') {
+                $items[] = ['nama' => $nama, 'wajib' => $wajib];
+            }
+        }
+
+        return $items;
+    }
+
+    /**
+     * Field isian yang akan diisi warga.
+     * Sumber definisi: Template Surat (isi surat yang diinput warga).
+     */
+    public function effectiveFormFields(): array
+    {
+        if ($this->template) {
+            return $this->template->formFields();
+        }
+
+        return $this->formFields();
+    }
+
     public function suratRequests()
     {
         return $this->hasMany(SuratRequest::class);

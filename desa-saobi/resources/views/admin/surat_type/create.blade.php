@@ -173,19 +173,7 @@
                                   class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2 px-3">{{ old('deskripsi') }}</textarea>
                     </div>
 
-                    <div>
-                        <label for="persyaratan_text" class="block text-xs font-bold text-slate-700 uppercase mb-1">
-                            Persyaratan Dokumen (Satu per baris)
-                        </label>
-                        <textarea name="persyaratan_text"
-                                  id="persyaratan_text"
-                                  rows="3"
-                                  placeholder="KTP&#10;KK&#10;Surat Pengantar RT"
-                                  class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2 px-3 font-mono text-xs">{{ old('persyaratan_text') }}</textarea>
-                        <p class="text-[11px] text-slate-500 mt-1">Tuliskan tiap syarat di baris baru.</p>
-                    </div>
-
-                    @include('admin.surat_type.partials.form-builder', ['fields' => []])
+                    @include('admin.surat_type.partials.persyaratan-builder', ['persyaratan' => []])
 
                     <div>
                         <label for="surat_template_id" class="block text-xs font-bold text-slate-700 uppercase mb-1.5 sm:mb-2">

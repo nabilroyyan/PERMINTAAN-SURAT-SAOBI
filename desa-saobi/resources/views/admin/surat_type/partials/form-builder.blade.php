@@ -1,7 +1,9 @@
 @php
+    $fieldName = $fieldName ?? 'form_fields_json';
+
     $initialFields = null;
-    if (old('form_fields_json')) {
-        $decoded = json_decode(old('form_fields_json'), true);
+    if (old($fieldName)) {
+        $decoded = json_decode(old($fieldName), true);
         $initialFields = is_array($decoded) ? $decoded : null;
     }
     if ($initialFields === null) {
@@ -10,9 +12,10 @@
 @endphp
 
 <div x-data="formFieldBuilder(@js($initialFields))"
+     x-effect="syncFieldsToStore()"
      class="p-4 sm:p-5 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-4">
 
-    <input type="hidden" name="form_fields_json" :value="serialized">
+    <input type="hidden" name="{{ $fieldName }}" :value="serialized">
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b border-emerald-200/60 pb-3">
         <div>
@@ -91,19 +94,6 @@
                     </div>
                 </div>
 
-                <template x-if="item.tipe !== 'file'">
-                    <div>
-                        <label class="block text-[11px] font-bold text-slate-600 uppercase mb-1">Isi Otomatis dari Data Penduduk</label>
-                        <select x-model="item.default_from"
-                                class="w-full rounded-lg border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs py-2 px-2.5">
-                            <option value="">— Tidak ada (diisi manual warga) —</option>
-                            @foreach (\App\Support\FormFieldSchema::DEFAULT_SOURCES as $sourceKode => $sourceLabel)
-                                <option value="{{ $sourceKode }}">{{ $sourceLabel }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </template>
-
                 <div class="flex items-center justify-end gap-1.5 pt-1 border-t border-slate-100">
                     <button type="button" @click="naik(index)" :disabled="index === 0"
                             class="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition disabled:opacity-30" title="Naikkan">
@@ -142,6 +132,19 @@ function formFieldBuilder(initial) {
 
     return {
         fields: mapInitial(initial),
+
+        // Sinkronkan daftar field ke store global agar panel "Variabel" di editor
+        // template (jika ada di halaman ini) ter-update secara live.
+        syncFieldsToStore() {
+            if (!window.Alpine) return;
+            const store = window.Alpine.store('tplFields');
+            if (!store) return;
+
+            store.items = this.fields.map((f, i) => ({
+                kode: (f.kode || '').trim() || this.kodeField(f) || ('variabel_' + (i + 1)),
+                label: (f.label || '').trim() || (f.kode || ''),
+            }));
+        },
 
         tambah() {
             this.fields.push({ kode: '', label: '', tipe: 'text', wajib: false, placeholder: '', help: '', default_from: '', optionsText: '' });

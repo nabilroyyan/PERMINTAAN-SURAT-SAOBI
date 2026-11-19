@@ -31,14 +31,14 @@ class SuratRequestController extends Controller
             ->orderBy('nama')
             ->get();
 
-        // Peta field isian dinamis (yang harus diisi pemohon) per jenis surat
+        // Peta field isian dinamis (gabungan template + jenis surat) per jenis surat
         $fieldMap = $jenisSurat->mapWithKeys(function ($jenis) {
-            return [$jenis->id => $jenis->formFields()];
+            return [$jenis->id => $jenis->effectiveFormFields()];
         });
 
-        // Peta persyaratan dokumen per jenis surat
+        // Peta persyaratan dokumen per jenis surat (nama + wajib/opsional)
         $syaratMap = $jenisSurat->mapWithKeys(function ($jenis) {
-            return [$jenis->id => $jenis->persyaratan ?? []];
+            return [$jenis->id => $jenis->persyaratanItems()];
         });
 
         // Nilai siap isi otomatis dari data penduduk pemohon
@@ -72,7 +72,7 @@ class SuratRequestController extends Controller
             ->with('template')
             ->findOrFail($validated['surat_type_id']);
 
-        $fields = $jenisSurat->formFields();
+        $fields = $jenisSurat->effectiveFormFields();
 
         [$rules, $attributes] = FormFieldSchema::validationRules($fields);
         if (!empty($rules)) {
@@ -102,7 +102,29 @@ class SuratRequestController extends Controller
             $tambahan[$kode] = $request->input("tambahan.{$kode}");
         }
 
-        $permohonan = DB::transaction(function () use ($request, $jenisSurat, $fields, $tambahan, $fileInputs) {
+        // Persyaratan dokumen (unggah berkas). Berkas wajib bila syarat ditandai Wajib.
+        $syaratDefs = $jenisSurat->persyaratanItems();
+        $syaratRules = [];
+        foreach ($syaratDefs as $i => $item) {
+            $syaratRules["syarat.{$i}"] = [
+                ($item['wajib'] ?? false) ? 'required' : 'nullable',
+                'file',
+                'mimes:jpg,jpeg,png,pdf',
+                'max:2048',
+            ];
+        }
+        if (!empty($syaratRules)) {
+            $request->validate($syaratRules, [], []);
+        }
+
+        $syaratFiles = [];
+        foreach ($syaratDefs as $i => $item) {
+            if ($request->hasFile("syarat.{$i}")) {
+                $syaratFiles[$i] = $request->file("syarat.{$i}");
+            }
+        }
+
+        $permohonan = DB::transaction(function () use ($request, $jenisSurat, $fields, $tambahan, $fileInputs, $syaratDefs, $syaratFiles) {
             $penduduk = $request->user()->penduduk;
 
             $data = [
@@ -152,6 +174,17 @@ class SuratRequestController extends Controller
                     'nama_file' => $definisi[$kode]['label'] ?? $file->getClientOriginalName(),
                     'path_file' => $path,
                     'jenis_dokumen' => $kode,
+                ]);
+            }
+
+            // Simpan berkas persyaratan yang diunggah warga (opsional)
+            foreach ($syaratFiles as $i => $file) {
+                $path = $file->store('surat-dokumen', 'public');
+
+                $surat->documents()->create([
+                    'nama_file' => $syaratDefs[$i]['nama'] ?? $file->getClientOriginalName(),
+                    'path_file' => $path,
+                    'jenis_dokumen' => 'syarat',
                 ]);
             }
 

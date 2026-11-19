@@ -132,6 +132,33 @@
                                 </dd>
                             </div>
                         @endforeach
+
+                        @php
+                            $syaratDocs = ($suratRequest->documents ?? collect())->where('jenis_dokumen', 'syarat');
+                        @endphp
+                        @if ($syaratDocs->isNotEmpty())
+                            <div class="sm:col-span-2">
+                                <dt class="text-xs font-medium text-slate-400 uppercase">Dokumen Persyaratan</dt>
+                                <dd class="mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-2">
+                                    @foreach ($syaratDocs as $dok)
+                                        <div class="flex flex-wrap items-center justify-between gap-2">
+                                            <span class="text-sm text-slate-700">{{ $dok->nama_file }}</span>
+                                            <div class="flex items-center gap-2">
+                                                <button type="button"
+                                                        onclick="openSuratPreview('{{ route('admin.permohonan.dokumen.lihat', [$suratRequest, $dok]) }}', '{{ route('admin.permohonan.dokumen', [$suratRequest, $dok]) }}', 'Pratinjau Berkas: {{ addslashes($dok->nama_file) }}', 'Unduh Berkas')"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition">
+                                                    Lihat
+                                                </button>
+                                                <a href="{{ route('admin.permohonan.dokumen', [$suratRequest, $dok]) }}" download
+                                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-lg transition">
+                                                    Unduh
+                                                </a>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </dd>
+                            </div>
+                        @endif
                     </dl>
                 </div>
 
