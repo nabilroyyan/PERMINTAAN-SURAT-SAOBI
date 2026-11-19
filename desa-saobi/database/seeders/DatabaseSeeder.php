@@ -121,17 +121,42 @@ class DatabaseSeeder extends Seeder
         );
 
         // 3. Pengaturan Profil Desa Saobi
-        VillageSetting::firstOrCreate(
+        VillageSetting::updateOrCreate(
             ['id' => 1],
             [
                 'nama_desa' => 'Desa Saobi',
+                'kecamatan' => 'Kangayan',
+                'kabupaten' => 'Sumenep',
+                'provinsi' => 'Jawa Timur',
                 'nama_kepala_desa' => 'HOSAINI, SH',
                 'nip_kepala_desa' => '-',
-                'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
+                'alamat' => 'Jalan Raya Masjid No. 50',
+                'kode_pos' => '69491',
+                'telepon' => null,
+                'email' => 'desasaobi90@gmail.com',
+                'website' => null,
             ]
         );
 
-        // 4. Data Jenis Surat
+        // 4. Template Isi Surat Contoh
+        $templateDomisili = \App\Models\SuratTemplate::updateOrCreate(
+            ['nama' => 'Surat Keterangan Domisili'],
+            [
+                'deskripsi' => 'Template isi surat keterangan domisili standar Desa Saobi.',
+                'konten' => implode("\n", [
+                    'Yang bertanda tangan di bawah ini Kepala {nama_desa}, {wilayah_lengkap}, dengan ini menerangkan dengan sebenarnya bahwa:',
+                    '',
+                    '{tabel_pemohon}',
+                    '',
+                    'Adalah benar berdomisili dan bertempat tinggal di {alamat} dan berkeperluan {keperluan}.',
+                    '',
+                    'Demikian surat keterangan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.',
+                ]),
+                'is_active' => true,
+            ]
+        );
+
+        // 5. Data Jenis Surat
         $jenisSurats = [
             [
                 'nama' => 'Surat Keterangan Domisili',
@@ -142,6 +167,29 @@ class DatabaseSeeder extends Seeder
                 'nomor_terakhir' => 0,
                 'panjang_nomor' => 2,
                 'is_active' => true,
+                'surat_template_id' => $templateDomisili->id,
+                'form_fields' => [
+                    [
+                        'kode' => 'alamat',
+                        'label' => 'Alamat Domisili',
+                        'tipe' => 'textarea',
+                        'wajib' => true,
+                        'placeholder' => null,
+                        'help' => 'Otomatis terisi dari data kependudukan. Sesuaikan jika perlu.',
+                        'default_from' => 'alamat',
+                        'options' => [],
+                    ],
+                    [
+                        'kode' => 'keperluan',
+                        'label' => 'Keperluan Surat',
+                        'tipe' => 'textarea',
+                        'wajib' => true,
+                        'placeholder' => 'Contoh: Persyaratan melamar pekerjaan',
+                        'help' => 'Jelaskan secara singkat tujuan dibuatnya surat.',
+                        'default_from' => null,
+                        'options' => [],
+                    ],
+                ],
             ],
         ];
 

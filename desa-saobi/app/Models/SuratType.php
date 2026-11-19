@@ -12,6 +12,7 @@ class SuratType extends Model
         'kode',
         'deskripsi',
         'persyaratan',
+        'form_fields',
         'format_nomor',
         'nomor_terakhir',
         'panjang_nomor',
@@ -23,10 +24,21 @@ class SuratType extends Model
     {
         return [
             'persyaratan' => 'array',
+            'form_fields' => 'array',
             'is_active' => 'boolean',
             'nomor_terakhir' => 'integer',
             'panjang_nomor' => 'integer',
         ];
+    }
+
+    /**
+     * Daftar field isian dinamis yang harus diisi pemohon untuk jenis surat ini.
+     */
+    public function formFields(): array
+    {
+        $fields = $this->form_fields;
+
+        return is_array($fields) ? $fields : [];
     }
 
     public function suratRequests()

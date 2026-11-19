@@ -121,7 +121,7 @@ class RegisteredUserController extends Controller
             'nik' => $validated['nik'],
             'email' => $validated['email'],
             'password' => Hash::make($validated['password']),
-            'role' => 'client',
+            'role' => 'warga',
         ]);
 
         // Hubungkan data penduduk dengan user_id

@@ -110,16 +110,17 @@
         @include('pdf.partials.qr-verifikasi')
 
         <div class="ttd-box">
-            <p style="margin: 0;">Saobi, {{ $tanggalSurat->locale('id')->translatedFormat('d F Y') }}</p>
-            <p style="margin: 1px 0 0 0;">Kepala Desa Saobi</p>
+            <p style="margin: 0;">{{ $desa->nama_desa ?? 'Desa' }}, {{ $tanggalSurat->locale('id')->translatedFormat('d F Y') }}</p>
+            <p style="margin: 1px 0 0 0;">Kepala {{ $desa->nama_desa ?? 'Desa' }}</p>
 
+            @php $ttd = $desa?->tandaTanganDataUri(); @endphp
             <div class="ttd-space">
-                @if (!empty($desa->gambar_tanda_tangan) && file_exists(public_path('storage/' . $desa->gambar_tanda_tangan)))
-                    <img class="ttd-img" src="{{ public_path('storage/' . $desa->gambar_tanda_tangan) }}" alt="Tanda Tangan">
+                @if ($ttd)
+                    <img class="ttd-img" src="{{ $ttd }}" alt="Tanda Tangan">
                 @endif
             </div>
 
-            <p class="nama-kades">{{ $desa->nama_kepala_desa ?? 'KEPALA DESA SAOBI' }}</p>
+            <p class="nama-kades">{{ $desa->nama_kepala_desa ?? 'KEPALA DESA' }}</p>
             @if (!empty($desa->nip_kepala_desa) && $desa->nip_kepala_desa !== '-')
                 <p class="nip-kades">NIP. {{ $desa->nip_kepala_desa }}</p>
             @endif

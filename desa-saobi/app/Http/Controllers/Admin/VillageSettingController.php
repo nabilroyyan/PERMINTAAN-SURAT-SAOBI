@@ -13,9 +13,6 @@ class VillageSettingController extends Controller
     {
         $setting = VillageSetting::first() ?? new VillageSetting([
             'nama_desa' => 'Desa Saobi',
-            'nama_kepala_desa' => 'HOSAINI, SH',
-            'nip_kepala_desa' => '-',
-            'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
         ]);
 
         return view('admin.settings.index', compact('setting'));
@@ -25,35 +22,56 @@ class VillageSettingController extends Controller
     {
         $validated = $request->validate([
             'nama_desa' => ['required', 'string', 'max:255'],
+            'kecamatan' => ['nullable', 'string', 'max:255'],
+            'kabupaten' => ['nullable', 'string', 'max:255'],
+            'provinsi' => ['nullable', 'string', 'max:255'],
             'nama_kepala_desa' => ['required', 'string', 'max:255'],
             'nip_kepala_desa' => ['nullable', 'string', 'max:50'],
             'alamat' => ['required', 'string', 'max:500'],
+            'kode_pos' => ['nullable', 'string', 'max:10'],
+            'telepon' => ['nullable', 'string', 'max:30'],
+            'email' => ['nullable', 'string', 'max:255'],
+            'website' => ['nullable', 'string', 'max:255'],
+            'logo_kiri' => ['nullable', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
+            'logo_kanan' => ['nullable', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
             'gambar_tanda_tangan' => ['nullable', 'image', 'mimes:png,jpg,jpeg', 'max:2048'],
         ]);
 
-        $setting = VillageSetting::first();
+        $setting = VillageSetting::first() ?? new VillageSetting();
 
-        if (!$setting) {
-            $setting = new VillageSetting();
-        }
+        $setting->fill([
+            'nama_desa' => $validated['nama_desa'],
+            'kecamatan' => $validated['kecamatan'] ?? null,
+            'kabupaten' => $validated['kabupaten'] ?? null,
+            'provinsi' => $validated['provinsi'] ?? null,
+            'nama_kepala_desa' => $validated['nama_kepala_desa'],
+            'nip_kepala_desa' => $validated['nip_kepala_desa'] ?? null,
+            'alamat' => $validated['alamat'],
+            'kode_pos' => $validated['kode_pos'] ?? null,
+            'telepon' => $validated['telepon'] ?? null,
+            'email' => $validated['email'] ?? null,
+            'website' => $validated['website'] ?? null,
+        ]);
 
-        $setting->nama_desa = $validated['nama_desa'];
-        $setting->nama_kepala_desa = $validated['nama_kepala_desa'];
-        $setting->nip_kepala_desa = $validated['nip_kepala_desa'];
-        $setting->alamat = $validated['alamat'];
-
-        if ($request->hasFile('gambar_tanda_tangan')) {
-            // Hapus gambar lama jika ada
-            if ($setting->gambar_tanda_tangan && Storage::disk('public')->exists($setting->gambar_tanda_tangan)) {
-                Storage::disk('public')->delete($setting->gambar_tanda_tangan);
-            }
-
-            $path = $request->file('gambar_tanda_tangan')->store('desa', 'public');
-            $setting->gambar_tanda_tangan = $path;
-        }
+        $this->storeImage($request, $setting, 'logo_kiri');
+        $this->storeImage($request, $setting, 'logo_kanan');
+        $this->storeImage($request, $setting, 'gambar_tanda_tangan');
 
         $setting->save();
 
-        return back()->with('success', 'Data profil Kepala Desa dan Tanda Tangan berhasil diperbarui.');
+        return back()->with('success', 'Pengaturan profil desa, wilayah, dan kop surat berhasil diperbarui.');
+    }
+
+    private function storeImage(Request $request, VillageSetting $setting, string $field): void
+    {
+        if (!$request->hasFile($field)) {
+            return;
+        }
+
+        if ($setting->{$field} && Storage::disk('public')->exists($setting->{$field})) {
+            Storage::disk('public')->delete($setting->{$field});
+        }
+
+        $setting->{$field} = $request->file($field)->store('desa', 'public');
     }
 }

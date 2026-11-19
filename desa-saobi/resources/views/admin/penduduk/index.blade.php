@@ -9,28 +9,21 @@
                     Kelola data resmi warga, import database kependudukan, dan atur hak akses / role akun (Warga, Admin)
                 </p>
             </div>
-            <div class="flex flex-wrap items-center gap-2 sm:gap-2.5 w-full sm:w-auto">
-                <a href="{{ route('admin.penduduk.sample-5000') }}"
-                   title="Unduh 5.000 data kependudukan siap pakai Desa Saobi untuk pengujian sistem"
-                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold rounded-xl shadow-sm transition">
-                    <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                    </svg>
-                    Data 5.000 Penduduk (.xlsx)
-                </a>
+            <div class="flex flex-row items-center gap-2 sm:gap-2.5 w-full sm:w-auto sm:justify-end">
                 <a href="{{ route('admin.penduduk.template') }}"
-                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl shadow-sm transition">
+                   download
+                   class="inline-flex items-center justify-center gap-1.5 px-3 py-2 bg-white border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold rounded-xl shadow-sm transition whitespace-nowrap">
                     <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                     </svg>
                     Template Excel
                 </a>
                 <a href="{{ route('admin.penduduk.create') }}"
-                   class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition">
+                   class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-xl shadow-sm transition whitespace-nowrap">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                     </svg>
-                    + Tambah Warga
+                    Tambah Warga
                 </a>
             </div>
         </div>
@@ -95,7 +88,7 @@
                     </div>
                     <div>
                         <h3 class="text-base font-bold text-slate-800">Import Data Warga dari File Excel (.xlsx / .csv)</h3>
-                        <p class="text-xs text-slate-600">Sistem mendukung import massal hingga 5.000+ data penduduk berkecepatan tinggi (10-15 detik) dengan otomatisasi pembuatan akun & sinkronisasi NIK.</p>
+                        <p class="text-xs text-slate-600">Import massal data kependudukan berkecepatan tinggi. Hanya data master yang disimpan — akun login tidak dibuat otomatis; warga mengaktifkannya lewat menu Aktivasi Akun.</p>
                     </div>
                 </div>
 
@@ -119,7 +112,7 @@
                     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
                         <div class="text-xs text-slate-600 space-y-1">
                             <div>Format kolom: <a href="{{ route('admin.penduduk.template') }}" class="font-bold text-emerald-700 underline">Unduh Template Excel Kosong</a></div>
-                            <div>Butuh data uji coba? <a href="{{ route('admin.penduduk.sample-5000') }}" class="font-bold text-emerald-800 underline">Unduh Data Simulasi 5.000 Penduduk Saobi (.xlsx)</a></div>
+                            <div>Akun login tidak dibuat otomatis — warga mengaktifkannya lewat menu <strong>Aktivasi Akun</strong>.</div>
                         </div>
                         <button type="submit"
                                 onclick="return confirm('Mulai proses import data penduduk? Sistem akan memproses dan mencocokkan data secara massal.')"

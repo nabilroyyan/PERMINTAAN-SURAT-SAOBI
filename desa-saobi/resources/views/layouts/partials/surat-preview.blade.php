@@ -10,7 +10,7 @@
         <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-b border-slate-200">
             <div class="flex items-center gap-2">
                 <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <h3 class="text-sm font-bold text-slate-800">Pratinjau Surat</h3>
+                <h3 class="text-sm font-bold text-slate-800" x-text="title || 'Pratinjau Surat'"></h3>
             </div>
             <button type="button" @click="close()" class="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition" title="Tutup">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -21,7 +21,7 @@
 
         <div class="flex-1 bg-slate-100 overflow-hidden">
             <template x-if="url">
-                <iframe :src="url" class="w-full" style="height: 76vh; border: 0;" title="Pratinjau Surat"></iframe>
+                <iframe :src="url" class="w-full" style="height: 76vh; border: 0;" title="Pratinjau Berkas"></iframe>
             </template>
         </div>
 
@@ -30,12 +30,12 @@
                     class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs sm:text-sm rounded-xl transition">
                 Tutup
             </button>
-            <a x-show="downloadUrl" :href="downloadUrl" x-cloak
+            <a x-show="downloadUrl" :href="downloadUrl" download x-cloak
                class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs sm:text-sm rounded-xl shadow-sm transition">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
                 </svg>
-                Unduh PDF
+                <span x-text="downloadLabel || 'Unduh PDF'"></span>
             </a>
         </div>
     </div>
@@ -47,12 +47,16 @@ function suratPreviewModal() {
         open: false,
         url: '',
         downloadUrl: '',
+        title: '',
+        downloadLabel: '',
 
         init() {
             window.addEventListener('buka-surat', (event) => {
                 const detail = event.detail || {};
                 this.url = detail.url || '';
                 this.downloadUrl = detail.download || '';
+                this.title = detail.title || '';
+                this.downloadLabel = detail.label || '';
                 this.open = true;
             });
         },
@@ -61,13 +65,15 @@ function suratPreviewModal() {
             this.open = false;
             this.url = '';
             this.downloadUrl = '';
+            this.title = '';
+            this.downloadLabel = '';
         },
     };
 }
 
-window.openSuratPreview = function (url, download) {
+window.openSuratPreview = function (url, download, title, downloadLabel) {
     window.dispatchEvent(new CustomEvent('buka-surat', {
-        detail: { url: url, download: download || '' },
+        detail: { url: url, download: download || '', title: title || '', label: downloadLabel || '' },
     }));
 };
 </script>

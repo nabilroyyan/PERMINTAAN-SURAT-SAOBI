@@ -35,7 +35,7 @@ export function showLiveUpdateToast(message, title = 'Pembaruan Real-Time!') {
     if (!container) return;
 
     const toast = document.createElement('div');
-    toast.className = 'pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-300 bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-emerald-200/90 flex items-start gap-3.5';
+    toast.className = 'pointer-events-auto transform translate-y-2 opacity-0 transition-all duration-700 ease-in-out bg-white/95 backdrop-blur-md rounded-2xl p-4 shadow-xl border border-emerald-200/90 flex items-start gap-3.5';
 
     toast.innerHTML = `
         <div class="relative shrink-0 mt-0.5">
@@ -72,6 +72,8 @@ export function showLiveUpdateToast(message, title = 'Pembaruan Real-Time!') {
         toast.classList.remove('translate-y-2', 'opacity-0');
         toast.classList.add('translate-y-0', 'opacity-100');
     });
+
+    return toast;
 }
 
 export function initLiveSync() {
@@ -119,15 +121,23 @@ export function initLiveSync() {
                 clearInterval(liveSyncInterval);
 
                 // Tampilkan notifikasi toast
-                showLiveUpdateToast(data.message || 'Ada pembaruan data dari Admin!');
+                const toast = showLiveUpdateToast(data.message || 'Ada pembaruan data dari Admin!');
 
-                // Tunggu 1.3 detik agar user sempat membaca notifikasi, lalu muat ulang secara mulus
+                // Beri waktu user membaca, lalu tutup toast perlahan (fade out),
+                // baru muat ulang halaman secara mulus.
+                setTimeout(() => {
+                    if (toast) {
+                        toast.classList.remove('translate-y-0', 'opacity-100');
+                        toast.classList.add('translate-y-2', 'opacity-0');
+                    }
+                }, 4300);
+
                 setTimeout(() => {
                     if (window.showLoading) {
                         window.showLoading('Memperbarui Halaman...', 'Menerapkan pembaruan dari Admin...');
                     }
                     window.location.reload();
-                }, 1300);
+                }, 5000);
             }
         } catch (err) {
             // Silently ignore network hiccup

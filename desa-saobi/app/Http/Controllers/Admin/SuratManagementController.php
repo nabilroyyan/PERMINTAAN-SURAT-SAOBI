@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\SuratDocument;
 use App\Models\SuratRequest;
 use App\Models\VillageSetting;
 use App\Support\SuratTemplateRenderer;
@@ -45,7 +46,7 @@ class SuratManagementController extends Controller
 
     public function show(SuratRequest $suratRequest)
     {
-        $suratRequest->load(['user', 'suratType.template', 'statusHistories.user']);
+        $suratRequest->load(['user', 'suratType.template', 'statusHistories.user', 'documents']);
         $villageSetting = VillageSetting::first();
 
         // Default nomor surat otomatis sesuai format jenis surat, namun tetap bisa diedit manual
@@ -65,6 +66,36 @@ class SuratManagementController extends Controller
             . '_' . ($suratRequest->nomor_surat ? str_replace(['/', '\\'], '-', $suratRequest->nomor_surat) : $suratRequest->id) . '.pdf';
 
         return Storage::disk('public')->download($suratRequest->file_surat, $nama);
+    }
+
+    public function downloadDokumen(SuratRequest $suratRequest, SuratDocument $document)
+    {
+        abort_unless($document->surat_request_id === $suratRequest->id, 404);
+
+        if (!Storage::disk('public')->exists($document->path_file)) {
+            abort(404, 'Berkas tidak ditemukan di server.');
+        }
+
+        return Storage::disk('public')->download($document->path_file, $document->nama_file);
+    }
+
+    /**
+     * Tampilkan berkas unggahan langsung di layar (inline) sebelum diunduh.
+     */
+    public function previewDokumen(SuratRequest $suratRequest, SuratDocument $document)
+    {
+        abort_unless($document->surat_request_id === $suratRequest->id, 404);
+
+        if (!Storage::disk('public')->exists($document->path_file)) {
+            abort(404, 'Berkas tidak ditemukan di server.');
+        }
+
+        $mime = Storage::disk('public')->mimeType($document->path_file) ?: 'application/octet-stream';
+
+        return response()->file(Storage::disk('public')->path($document->path_file), [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $document->nama_file . '"',
+        ]);
     }
 
     /**
@@ -95,7 +126,6 @@ class SuratManagementController extends Controller
                 Rule::in([
                     'revision',
                     'processing',
-                    'approved',
                     'rejected',
                 ]),
             ],
@@ -155,10 +185,7 @@ class SuratManagementController extends Controller
         ]);
 
         $villageSetting = VillageSetting::first() ?? new VillageSetting([
-            'nama_desa' => 'Desa Saobi',
-            'nama_kepala_desa' => 'HOSAINI, SH',
-            'nip_kepala_desa' => '-',
-            'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
+            'nama_desa' => 'Desa',
         ]);
 
         $suratRequest->load(['user.penduduk', 'suratType.template']);
@@ -167,7 +194,7 @@ class SuratManagementController extends Controller
             $tanggalSurat = Carbon::parse($validated['tanggal_surat']);
 
             // Gunakan template isi surat dinamis bila jenis surat memilikinya.
-            // Jika tidak, tetap gunakan tampilan bawaan berbasis view.
+            // Jika tidak, gunakan tampilan generik pdf.surat.
             $kontenTemplate = $suratRequest->suratType?->template?->konten;
 
             if (filled($kontenTemplate)) {
@@ -191,10 +218,6 @@ class SuratManagementController extends Controller
                 ];
             } else {
                 $viewName = 'pdf.surat';
-                $kode = strtolower($suratRequest->suratType?->kode ?? '');
-                if ($kode && view()->exists("pdf.surat-{$kode}")) {
-                    $viewName = "pdf.surat-{$kode}";
-                }
 
                 $viewData = [
                     'surat' => $suratRequest,

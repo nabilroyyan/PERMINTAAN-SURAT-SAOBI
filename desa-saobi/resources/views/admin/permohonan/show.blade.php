@@ -88,36 +88,50 @@
                                 {{ $suratRequest->data_pemohon['nik'] ?? $suratRequest->user->nik ?? '-' }}
                             </dd>
                         </div>
-                        <div class="sm:col-span-2">
-                            <dt class="text-xs font-medium text-slate-400 uppercase">Alamat Domisili</dt>
-                            <dd class="mt-1 text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                {{ $suratRequest->data_pemohon['alamat'] ?? '-' }}
-                            </dd>
-                        </div>
-                        <div class="sm:col-span-2">
-                            <dt class="text-xs font-medium text-slate-400 uppercase">Keperluan Surat</dt>
-                            <dd class="mt-1 text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
-                                {{ $suratRequest->data_pemohon['keperluan'] ?? '-' }}
-                            </dd>
-                        </div>
-
                         @php
-                            $dataTambahan = $suratRequest->data_pemohon['tambahan'] ?? [];
-                            $definisiTambahan = collect($suratRequest->suratType?->template?->variabel_tambahan ?? [])->keyBy('kode');
+                            $fieldDefs = $suratRequest->suratType?->formFields() ?? [];
+                            $dokumenMap = ($suratRequest->documents ?? collect())->keyBy('jenis_dokumen');
+                            $nilaiField = function ($kode) use ($suratRequest) {
+                                $tambahan = $suratRequest->data_pemohon['tambahan'] ?? [];
+                                $nilai = $tambahan[$kode] ?? ($suratRequest->data_pemohon[$kode] ?? null);
+                                if (is_array($nilai)) {
+                                    return implode(', ', $nilai);
+                                }
+                                return $nilai;
+                            };
                         @endphp
-                        @if (is_array($dataTambahan) && count($dataTambahan) > 0)
+
+                        @foreach ($fieldDefs as $field)
+                            @php $tipe = $field['tipe'] ?? 'text'; @endphp
                             <div class="sm:col-span-2">
-                                <dt class="text-xs font-medium text-slate-400 uppercase">Data Tambahan Surat</dt>
-                                <dd class="mt-1 bg-slate-50 p-3 rounded-xl border border-slate-100 space-y-1.5">
-                                    @foreach ($dataTambahan as $kode => $nilai)
-                                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-0.5 text-sm">
-                                            <span class="text-slate-500">{{ $definisiTambahan[$kode]['label'] ?? \Illuminate\Support\Str::headline($kode) }}</span>
-                                            <span class="font-semibold text-slate-800 sm:text-right">{{ filled($nilai) ? $nilai : '-' }}</span>
-                                        </div>
-                                    @endforeach
+                                <dt class="text-xs font-medium text-slate-400 uppercase">{{ $field['label'] ?? $field['kode'] }}</dt>
+                                <dd class="mt-1 text-slate-700 bg-slate-50 p-3 rounded-xl border border-slate-100">
+                                    @if ($tipe === 'file')
+                                        @php $dok = $dokumenMap[$field['kode']] ?? null; @endphp
+                                        @if ($dok)
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <button type="button"
+                                                        onclick="openSuratPreview('{{ route('admin.permohonan.dokumen.lihat', [$suratRequest, $dok]) }}', '{{ route('admin.permohonan.dokumen', [$suratRequest, $dok]) }}', 'Pratinjau Berkas: {{ addslashes($field['label'] ?? 'Berkas') }}', 'Unduh Berkas')"
+                                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                                    Lihat Berkas
+                                                </button>
+                                                <a href="{{ route('admin.permohonan.dokumen', [$suratRequest, $dok]) }}"
+                                                   download
+                                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold text-xs rounded-lg transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                                    Unduh
+                                                </a>
+                                            </div>
+                                        @else
+                                            <span class="text-slate-400">-</span>
+                                        @endif
+                                    @else
+                                        {{ filled($nilaiField($field['kode'])) ? $nilaiField($field['kode']) : '-' }}
+                                    @endif
                                 </dd>
                             </div>
-                        @endif
+                        @endforeach
                     </dl>
                 </div>
 

@@ -45,8 +45,8 @@
                 </div>
             @endif
 
-            <form action="{{ route('client.surat.store') }}" method="POST"
-                  x-data="formulirPermohonan(@js($fieldMap), @js(old('tambahan', [])), '{{ old('surat_type_id') }}')"
+            <form action="{{ route('client.surat.store') }}" method="POST" enctype="multipart/form-data"
+                  x-data="formulirPermohonan(@js($fieldMap), @js($syaratMap), @js($pendudukDefaults), @js(old('tambahan', [])), '{{ old('surat_type_id') }}')"
                   class="p-4 sm:p-6 md:p-8 space-y-5 sm:space-y-6">
                 @csrf
 
@@ -92,14 +92,26 @@
                     @enderror
                 </div>
 
-                <!-- Data Tambahan Khusus Jenis Surat Terpilih (mis. batas tanah) -->
+                <!-- Persyaratan Dokumen (info) -->
+                <template x-if="activeSyarat.length > 0">
+                    <div class="bg-amber-50/70 border border-amber-200/80 rounded-xl p-3.5 sm:p-4">
+                        <h4 class="text-xs font-bold text-amber-800 uppercase tracking-wider mb-2">Persyaratan Dokumen</h4>
+                        <ul class="list-disc list-inside space-y-1 text-xs text-amber-900">
+                            <template x-for="(syarat, i) in activeSyarat" :key="i">
+                                <li x-text="syarat"></li>
+                            </template>
+                        </ul>
+                    </div>
+                </template>
+
+                <!-- Data Isian Dinamis Khusus Jenis Surat Terpilih -->
                 <template x-if="activeFields.length > 0">
                     <div class="bg-emerald-50/60 border border-emerald-200/80 rounded-xl p-3.5 sm:p-5">
                         <h4 class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                             <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h6l5 5v11a2 2 0 01-2 2z"></path>
                             </svg>
-                            Data Tambahan untuk Surat Ini
+                            Data untuk Surat Ini
                         </h4>
                         <p class="text-[11px] sm:text-xs text-slate-500 mb-3">
                             Isian berikut khusus untuk jenis surat yang Anda pilih. Data akan dicetak pada surat.
@@ -112,60 +124,90 @@
                                         <span x-text="field.label"></span><span x-show="field.wajib" class="text-red-500"> *</span>
                                     </label>
 
-                                    <template x-if="field.tipe === 'textarea'">
-                                        <textarea :id="'tambahan_' + field.kode"
-                                                  :name="'tambahan[' + field.kode + ']'"
-                                                  rows="3"
-                                                  :value="nilaiLama(field.kode)"
-                                                  class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm p-3 transition shadow-sm"></textarea>
+                                    <!-- Teks Pendek -->
+                                    <template x-if="field.tipe === 'text'">
+                                        <input type="text" :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                               :placeholder="field.placeholder || ''"
+                                               x-init="$el.value = nilaiField(field)"
+                                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm bg-white">
                                     </template>
 
-                                    <template x-if="field.tipe !== 'textarea'">
-                                        <input :id="'tambahan_' + field.kode"
-                                               :name="'tambahan[' + field.kode + ']'"
-                                               :type="field.tipe === 'date' ? 'date' : 'text'"
-                                               :value="nilaiLama(field.kode)"
-                                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm">
+                                    <!-- Teks Panjang -->
+                                    <template x-if="field.tipe === 'textarea'">
+                                        <textarea :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                                  :placeholder="field.placeholder || ''" rows="3"
+                                                  x-init="$el.value = nilaiField(field)"
+                                                  class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm p-3 transition shadow-sm bg-white"></textarea>
                                     </template>
+
+                                    <!-- Tanggal -->
+                                    <template x-if="field.tipe === 'date'">
+                                        <input type="date" :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                               x-init="$el.value = nilaiField(field)"
+                                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm bg-white">
+                                    </template>
+
+                                    <!-- Angka -->
+                                    <template x-if="field.tipe === 'number'">
+                                        <input type="number" :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                               :placeholder="field.placeholder || ''"
+                                               x-init="$el.value = nilaiField(field)"
+                                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm bg-white">
+                                    </template>
+
+                                    <!-- Dropdown -->
+                                    <template x-if="field.tipe === 'select'">
+                                        <select :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                                class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 transition shadow-sm bg-white">
+                                            <option value="">-- Pilih --</option>
+                                            <template x-for="opt in field.options" :key="opt">
+                                                <option :value="opt" :selected="nilaiField(field) === opt" x-text="opt"></option>
+                                            </template>
+                                        </select>
+                                    </template>
+
+                                    <!-- Radio -->
+                                    <template x-if="field.tipe === 'radio'">
+                                        <div class="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+                                            <template x-for="opt in field.options" :key="opt">
+                                                <label class="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                                                    <input type="radio" :name="'tambahan[' + field.kode + ']'" :value="opt"
+                                                           :checked="nilaiField(field) === opt"
+                                                           class="text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                                                    <span x-text="opt"></span>
+                                                </label>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Checkbox -->
+                                    <template x-if="field.tipe === 'checkbox'">
+                                        <div class="flex flex-wrap gap-x-5 gap-y-2 pt-1">
+                                            <template x-for="opt in field.options" :key="opt">
+                                                <label class="inline-flex items-center gap-2 text-xs sm:text-sm text-slate-700">
+                                                    <input type="checkbox" :name="'tambahan[' + field.kode + '][]'" :value="opt"
+                                                           :checked="centangLama(field.kode).includes(opt)"
+                                                           class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300">
+                                                    <span x-text="opt"></span>
+                                                </label>
+                                            </template>
+                                        </div>
+                                    </template>
+
+                                    <!-- Unggah Berkas -->
+                                    <template x-if="field.tipe === 'file'">
+                                        <input type="file" :id="'tambahan_' + field.kode" :name="'tambahan[' + field.kode + ']'"
+                                               accept="image/png,image/jpeg,application/pdf"
+                                               class="block w-full text-xs sm:text-sm text-slate-500 file:mr-3 sm:file:mr-4 file:py-2 file:px-3 sm:file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 bg-white border border-slate-200 rounded-xl p-1.5 transition">
+                                    </template>
+
+                                    <p x-show="field.help" x-text="field.help" class="text-[11px] sm:text-xs text-slate-500 mt-1"></p>
+                                    <p x-show="field.tipe === 'file'" class="text-[11px] text-slate-400 mt-1">Format: JPG, PNG, atau PDF (maks. 2 MB).</p>
                                 </div>
                             </template>
                         </div>
                     </div>
                 </template>
-
-                <!-- Alamat Domisili -->
-                <div>
-                    <label for="alamat" class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">
-                        Alamat Domisili Lengkap di Desa Saobi <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="alamat"
-                              name="alamat"
-                              rows="3"
-                              class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm p-3 transition shadow-sm"
-                              placeholder="Contoh: Dusun Saobi Timur, RT 01 / RW 02, Desa Saobi, Kec. Kangayan"
-                              required>{{ old('alamat', Auth::user()->penduduk->alamat ?? '') }}</textarea>
-                    <p class="text-[11px] sm:text-xs text-slate-500 mt-1">Otomatis terisi dari data kependudukan resmi. Anda dapat menyesuaikan jika diperlukan.</p>
-                    @error('alamat')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-
-                <!-- Keperluan Surat -->
-                <div>
-                    <label for="keperluan" class="block text-xs sm:text-sm font-bold text-slate-700 mb-1.5">
-                        Keperluan / Alasan Pengajuan Surat <span class="text-red-500">*</span>
-                    </label>
-                    <textarea id="keperluan"
-                              name="keperluan"
-                              rows="3"
-                              class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm p-3 transition shadow-sm"
-                              placeholder="Contoh: Persyaratan melamar pekerjaan / Permohonan beasiswa kuliah / Bantuan sosial"
-                              required>{{ old('keperluan') }}</textarea>
-                    <p class="text-[11px] sm:text-xs text-slate-500 mt-1">Jelaskan secara singkat tujuan dibuatnya surat keterangan ini.</p>
-                    @error('keperluan')
-                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
 
                 <!-- Tombol Submit (Responsive Stack on Mobile) -->
                 <div class="pt-4 border-t border-slate-100 flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 sm:gap-3">
@@ -186,9 +228,11 @@
     </div>
 
     <script>
-    function formulirPermohonan(fieldMap, oldTambahan, jenisSuratId) {
+    function formulirPermohonan(fieldMap, syaratMap, pendudukDefaults, oldTambahan, jenisSuratId) {
         return {
             fieldMap: fieldMap || {},
+            syaratMap: syaratMap || {},
+            pendudukDefaults: pendudukDefaults || {},
             oldTambahan: oldTambahan || {},
             jenisSuratId: jenisSuratId ? String(jenisSuratId) : '',
 
@@ -197,10 +241,30 @@
                 return Array.isArray(fields) ? fields : [];
             },
 
-            nilaiLama(kode) {
-                return (this.oldTambahan && this.oldTambahan[kode]) || '';
+            get activeSyarat() {
+                const syarat = this.syaratMap[this.jenisSuratId];
+                return Array.isArray(syarat) ? syarat : [];
             },
-        };
+
+            nilaiField(field) {
+                const lama = this.oldTambahan ? this.oldTambahan[field.kode] : '';
+                if (lama !== null && lama !== undefined && lama !== '' && typeof lama !== 'object') {
+                    return lama;
+                }
+                if (field.default_from && this.pendudukDefaults[field.default_from]) {
+                    return this.pendudukDefaults[field.default_from];
+                }
+                return '';
+            },
+
+            centangLama(kode) {
+                const nilai = this.oldTambahan ? this.oldTambahan[kode] : null;
+                if (Array.isArray(nilai)) {
+                    return nilai;
+                }
+                return nilai ? [nilai] : [];
+            },
+        }
     }
     </script>
 </x-app-layout>

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SuratTemplate;
 use App\Models\SuratType;
+use App\Support\FormFieldSchema;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -57,8 +58,9 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
+            'form_fields' => $this->formFields($request),
             'surat_template_id' => $validated['surat_template_id'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()->route('admin.jenis-surat.index')
@@ -105,12 +107,20 @@ class SuratTypeController extends Controller
             'panjang_nomor' => (int) $validated['panjang_nomor'],
             'deskripsi' => $validated['deskripsi'] ?? null,
             'persyaratan' => $persyaratan,
+            'form_fields' => $this->formFields($request),
             'surat_template_id' => $validated['surat_template_id'] ?? null,
-            'is_active' => $request->boolean('is_active', true),
+            'is_active' => $request->boolean('is_active'),
         ]);
 
         return redirect()->route('admin.jenis-surat.index')
             ->with('success', 'Format penomoran untuk ' . $jenis_surat->nama . ' berhasil diperbarui.');
+    }
+
+    private function formFields(Request $request): array
+    {
+        $raw = json_decode((string) $request->input('form_fields_json', '[]'), true);
+
+        return FormFieldSchema::normalize(is_array($raw) ? $raw : []);
     }
 
     public function destroy(SuratType $jenis_surat)

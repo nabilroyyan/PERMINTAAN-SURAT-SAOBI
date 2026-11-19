@@ -64,6 +64,54 @@
                     @enderror
                 </div>
 
+                <!-- Data Wilayah -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+                    <div>
+                        <label for="kecamatan" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                            Kecamatan
+                        </label>
+                        <input type="text"
+                               name="kecamatan"
+                               id="kecamatan"
+                               value="{{ old('kecamatan', $setting->kecamatan) }}"
+                               placeholder="Contoh: Kangayan"
+                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                        @error('kecamatan')
+                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="kabupaten" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                            Kabupaten
+                        </label>
+                        <input type="text"
+                               name="kabupaten"
+                               id="kabupaten"
+                               value="{{ old('kabupaten', $setting->kabupaten) }}"
+                               placeholder="Contoh: Sumenep"
+                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                        @error('kabupaten')
+                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div>
+                        <label for="provinsi" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                            Provinsi
+                        </label>
+                        <input type="text"
+                               name="provinsi"
+                               id="provinsi"
+                               value="{{ old('provinsi', $setting->provinsi) }}"
+                               placeholder="Contoh: Jawa Timur"
+                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                        @error('provinsi')
+                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </div>
+
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
                     <!-- Nama Kepala Desa -->
                     <div>
@@ -113,6 +161,73 @@
                     @error('alamat')
                         <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
                     @enderror
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5 mt-4">
+                        <div>
+                            <label for="kode_pos" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kode Pos</label>
+                            <input type="text" name="kode_pos" id="kode_pos" value="{{ old('kode_pos', $setting->kode_pos) }}"
+                                   placeholder="Contoh: 69491"
+                                   class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 font-mono">
+                        </div>
+                        <div>
+                            <label for="telepon" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Telepon Kantor</label>
+                            <input type="text" name="telepon" id="telepon" value="{{ old('telepon', $setting->telepon) }}"
+                                   placeholder="Contoh: 0812xxxxxxx"
+                                   class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3 font-mono">
+                        </div>
+                        <div>
+                            <label for="email" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Email Desa</label>
+                            <input type="text" name="email" id="email" value="{{ old('email', $setting->email) }}"
+                                   placeholder="Contoh: desasaobi@gmail.com"
+                                   class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                        </div>
+                        <div>
+                            <label for="website" class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Website (Opsional)</label>
+                            <input type="text" name="website" id="website" value="{{ old('website', $setting->website) }}"
+                                   placeholder="Contoh: desasaobi.desa.id"
+                                   class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-xs sm:text-sm py-2.5 px-3">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Logo Kop Surat (Kiri & Kanan) -->
+                <div class="border-t border-slate-100 pt-5 sm:pt-6">
+                    <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">
+                        Logo Kop Surat (Kiri &amp; Kanan)
+                    </label>
+                    <p class="text-xs text-slate-500 mb-3">Logo tampil di sisi kiri dan kanan kop surat PDF. Gunakan PNG dengan latar transparan.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                        <div>
+                            <label for="logo_kiri" class="block text-xs font-semibold text-slate-600 mb-1.5">Logo Kiri</label>
+                            @if ($setting->logo_kiri)
+                                <div class="mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200 inline-block">
+                                    <img src="{{ asset('storage/' . $setting->logo_kiri) }}" alt="Logo Kiri"
+                                         class="h-16 object-contain bg-white p-1 rounded-lg border border-slate-200">
+                                </div>
+                            @endif
+                            <input type="file" name="logo_kiri" id="logo_kiri" accept="image/png,image/jpeg,image/jpg"
+                                   class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 bg-white border border-slate-200 rounded-xl p-1.5 transition">
+                            @error('logo_kiri')
+                                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div>
+                            <label for="logo_kanan" class="block text-xs font-semibold text-slate-600 mb-1.5">Logo Kanan</label>
+                            @if ($setting->logo_kanan)
+                                <div class="mb-3 p-3 rounded-xl bg-slate-50 border border-slate-200 inline-block">
+                                    <img src="{{ asset('storage/' . $setting->logo_kanan) }}" alt="Logo Kanan"
+                                         class="h-16 object-contain bg-white p-1 rounded-lg border border-slate-200">
+                                </div>
+                            @endif
+                            <input type="file" name="logo_kanan" id="logo_kanan" accept="image/png,image/jpeg,image/jpg"
+                                   class="block w-full text-xs text-slate-500 file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-emerald-50 file:text-emerald-700 hover:file:bg-emerald-100 bg-white border border-slate-200 rounded-xl p-1.5 transition">
+                            @error('logo_kanan')
+                                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Upload Tanda Tangan & Stempel -->

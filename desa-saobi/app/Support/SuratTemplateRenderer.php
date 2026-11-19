@@ -41,6 +41,15 @@ class SuratTemplateRenderer
                 'nama_kepala_desa' => 'Nama kepala desa',
                 'nip_kepala_desa' => 'NIP kepala desa',
                 'alamat_desa' => 'Alamat kantor desa',
+                'wilayah_lengkap' => 'Wilayah lengkap (Kecamatan, Kabupaten, Provinsi)',
+            ],
+            'Data Wilayah' => [
+                'kecamatan' => 'Kecamatan',
+                'kabupaten' => 'Kabupaten',
+                'provinsi' => 'Provinsi',
+                'kode_pos' => 'Kode pos',
+                'telepon' => 'Telepon desa',
+                'email' => 'Email desa',
             ],
             'Blok Siap Pakai' => [
                 'tabel_pemohon' => 'Tabel data pemohon (Nama, NIK, Alamat, dst.)',
@@ -108,6 +117,13 @@ class SuratTemplateRenderer
             'nama_kepala_desa' => $desa?->nama_kepala_desa ?? '-',
             'nip_kepala_desa' => $desa?->nip_kepala_desa ?? '-',
             'alamat_desa' => $desa?->alamat ?? '-',
+            'wilayah_lengkap' => $desa?->wilayahLengkap() ?: '-',
+            'kecamatan' => $desa?->kecamatan ?: '-',
+            'kabupaten' => $desa?->kabupaten ?: '-',
+            'provinsi' => $desa?->provinsi ?: '-',
+            'kode_pos' => $desa?->kode_pos ?: '-',
+            'telepon' => $desa?->telepon ?: '-',
+            'email' => $desa?->email ?: '-',
         ];
 
         // Gabungkan variabel tambahan yang diisi pemohon (mis. batas tanah sebelah barat/timur)
@@ -115,6 +131,9 @@ class SuratTemplateRenderer
         if (is_array($tambahan)) {
             foreach ($tambahan as $key => $value) {
                 if (is_string($key) && $key !== '' && !array_key_exists($key, $variables)) {
+                    if (is_array($value)) {
+                        $value = implode(', ', array_filter(array_map(fn ($v) => (string) $v, $value), fn ($v) => $v !== ''));
+                    }
                     $variables[$key] = (string) ($value ?? '-');
                 }
             }
@@ -124,7 +143,7 @@ class SuratTemplateRenderer
     }
 
     /**
-     * Daftar nama variabel bawaan yang tidak boleh dipakai ulang oleh variabel tambahan.
+     * Nama variabel bawaan yang tidak boleh dipakai ulang oleh variabel tambahan.
      */
     public static function reservedKeys(): array
     {
@@ -138,6 +157,17 @@ class SuratTemplateRenderer
         $keys[] = 'tambahan';
 
         return array_values(array_unique($keys));
+    }
+
+    /**
+     * Kode yang tidak boleh dipakai sebagai field isian pemohon.
+     * "alamat" dan "keperluan" dikecualikan agar tetap dapat diatur admin per jenis surat.
+     */
+    public static function formFieldReservedKeys(): array
+    {
+        $allowed = ['alamat', 'keperluan'];
+
+        return array_values(array_diff(self::reservedKeys(), $allowed));
     }
 
     /**
@@ -199,16 +229,29 @@ class SuratTemplateRenderer
 
     private static function composeAlamat($dusun, $rt, $rw, ?VillageSetting $desa): string
     {
-        if (blank($dusun)) {
+        $parts = [];
+
+        if (filled($dusun)) {
+            $rtRw = '';
+            if (filled($rt) || filled($rw)) {
+                $rtRw = ' RT ' . ($rt ?: '-') . ' / RW ' . ($rw ?: '-');
+            }
+            $parts[] = 'Dusun ' . $dusun . $rtRw;
+        }
+
+        if (filled($desa?->nama_desa)) {
+            $parts[] = $desa->nama_desa;
+        }
+
+        if (filled($wilayah = $desa?->wilayahLengkap())) {
+            $parts[] = $wilayah;
+        }
+
+        if (empty($parts)) {
             return $desa?->alamat ?? '-';
         }
 
-        $rtRw = '';
-        if (filled($rt) || filled($rw)) {
-            $rtRw = ' RT ' . ($rt ?: '-') . ' / RW ' . ($rw ?: '-');
-        }
-
-        return 'Dusun ' . $dusun . $rtRw . ', ' . ($desa?->nama_desa ?? 'Desa Saobi') . ', Kecamatan Kangayan, Kabupaten Sumenep';
+        return implode(', ', $parts);
     }
 
     private static function formatTanggal($value, string $format): string

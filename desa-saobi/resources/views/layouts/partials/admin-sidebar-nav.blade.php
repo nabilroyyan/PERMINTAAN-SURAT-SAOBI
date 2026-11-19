@@ -48,6 +48,38 @@
             @endif
         </a>
 
+        <!-- Reset Kata Sandi -->
+        <a href="{{ route('admin.reset-sandi.index') }}"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition group {{ request()->routeIs('admin.reset-sandi.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/80' }}">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 {{ request()->routeIs('admin.reset-sandi.*') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400' }} transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
+                </svg>
+                <span>Reset Kata Sandi</span>
+            </div>
+            @if(($resetPendingCount ?? 0) > 0)
+                <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ request()->routeIs('admin.reset-sandi.*') ? 'bg-amber-400 text-slate-900' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30' }}">
+                    {{ $resetPendingCount }}
+                </span>
+            @endif
+        </a>
+
+        <!-- Aktivasi Akun -->
+        <a href="{{ route('admin.aktivasi-akun.index') }}"
+           class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition group {{ request()->routeIs('admin.aktivasi-akun.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/80' }}">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 {{ request()->routeIs('admin.aktivasi-akun.*') ? 'text-white' : 'text-slate-400 group-hover:text-emerald-400' }} transition" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                <span>Aktivasi Akun</span>
+            </div>
+            @if(($activationPendingCount ?? 0) > 0)
+                <span class="px-2 py-0.5 text-xs font-bold rounded-full {{ request()->routeIs('admin.aktivasi-akun.*') ? 'bg-amber-400 text-slate-900' : 'bg-amber-500/20 text-amber-300 border border-amber-500/30' }}">
+                    {{ $activationPendingCount }}
+                </span>
+            @endif
+        </a>
+
         <!-- Jenis & No. Surat -->
         <a href="{{ route('admin.jenis-surat.index') }}"
            class="flex items-center justify-between px-3.5 py-2.5 rounded-xl text-sm font-medium transition group {{ request()->routeIs('admin.jenis-surat.*') ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30' : 'text-slate-300 hover:text-white hover:bg-slate-800/80' }}">

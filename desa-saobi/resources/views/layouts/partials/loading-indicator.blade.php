@@ -6,9 +6,9 @@
 
 <!-- Global Loading Overlay -->
 <div id="global-loading-overlay"
-     class="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-950/40 backdrop-blur-xs transition-opacity duration-300 opacity-0 pointer-events-none"
+     class="fixed inset-0 z-[99998] flex items-center justify-center bg-slate-950/40 backdrop-blur-xs transition-opacity duration-700 ease-in-out opacity-0 pointer-events-none"
      aria-live="polite">
-    <div class="loading-card bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 max-w-xs sm:max-w-sm w-full mx-4 flex flex-col items-center text-center transform transition-transform duration-300 scale-95">
+    <div class="loading-card bg-white/95 backdrop-blur-md rounded-3xl p-6 sm:p-7 shadow-2xl border border-slate-100 max-w-xs sm:max-w-sm w-full mx-4 flex flex-col items-center text-center transform transition-transform duration-700 ease-in-out scale-95">
         <!-- Logo & Spinner Animation -->
         <div class="relative w-16 h-16 flex items-center justify-center mb-4">
             <!-- Rotating Spinner Ring -->

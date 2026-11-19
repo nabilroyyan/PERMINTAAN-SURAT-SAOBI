@@ -16,6 +16,7 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans text-slate-800 antialiased bg-slate-50 min-h-screen flex flex-col justify-center items-center p-4 selection:bg-emerald-500 selection:text-white">
+        @php($desaFooter = \App\Models\VillageSetting::first())
         <!-- Global Loading Animation -->
         @include('layouts.partials.loading-indicator')
 
@@ -23,7 +24,7 @@
             <!-- Brand Header -->
             <div class="text-center mb-5 sm:mb-6">
                 <h1 class="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
-                    DESA SAOBI
+                    {{ strtoupper($desaFooter?->nama_desa ?? 'DESA SAOBI') }}
                 </h1>
                 <img src="{{ asset('images/logo_desa_saobi.png') }}" alt="Logo Desa Saobi" class="w-16 h-auto sm:w-20 object-contain mx-auto mt-3 mb-2">
                 <p class="text-xs text-emerald-700 font-semibold tracking-wider uppercase mt-0.5">
@@ -37,7 +38,7 @@
             </div>
 
             <p class="text-center text-xs text-slate-400 mt-6">
-                &copy; {{ date('Y') }} Pemerintah Desa Saobi &bull; Kec. Kangayan, Kab. Sumenep
+                &copy; {{ date('Y') }} Pemerintah {{ $desaFooter?->nama_desa ?? 'Desa Saobi' }}@if (filled($desaFooter?->wilayahLengkap())) &bull; {{ $desaFooter->wilayahLengkap() }}@endif
             </p>
         </div>
     </body>

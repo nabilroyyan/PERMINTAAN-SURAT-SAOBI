@@ -10,7 +10,6 @@ use App\Models\VillageSetting;
 use App\Support\SuratTemplateRenderer;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class SuratTemplateController extends Controller
@@ -75,19 +74,8 @@ class SuratTemplateController extends Controller
         $konten = (string) $request->input('konten', '');
         $judul = $request->input('judul') ?: 'Surat Keterangan Contoh';
 
-        // Nilai contoh untuk variabel tambahan (mis. batas tanah) agar tampil di pratinjau
-        $rawVariabel = json_decode((string) $request->input('variabel_tambahan_json', '[]'), true);
-        $variabel = $this->normalizeVariabel(is_array($rawVariabel) ? $rawVariabel : []);
-        $tambahanContoh = [];
-        foreach ($variabel as $field) {
-            $tambahanContoh[$field['kode']] = 'Contoh ' . $field['label'];
-        }
-
         $desa = VillageSetting::first() ?? new VillageSetting([
             'nama_desa' => 'Desa Saobi',
-            'nama_kepala_desa' => 'HOSAINI, SH',
-            'nip_kepala_desa' => '-',
-            'alamat' => 'Jalan Raya Masjid No. 50. Email:desasaobi90@gmail.com Kode Pos 69491',
         ]);
 
         $surat = new SuratRequest([
@@ -105,7 +93,7 @@ class SuratTemplateController extends Controller
                 'rw' => '02',
                 'alamat' => 'Dusun Saobi Timur RT 01 / RW 02',
                 'keperluan' => 'Melengkapi persyaratan administrasi',
-                'tambahan' => $tambahanContoh,
+                'tambahan' => [],
             ],
             'verification_token' => 'contoh-token-pratinjau',
         ]);
@@ -142,76 +130,16 @@ class SuratTemplateController extends Controller
             'is_active' => ['boolean'],
         ]);
 
-        $validated['is_active'] = $request->boolean('is_active', true);
+        $validated['is_active'] = $request->boolean('is_active');
         $validated['konten'] = $validated['konten'] ?? '';
 
-        $raw = json_decode((string) $request->input('variabel_tambahan_json', '[]'), true);
-        $validated['variabel_tambahan'] = $this->normalizeVariabel(is_array($raw) ? $raw : []);
-
         return $validated;
-    }
-
-    /**
-     * Rapikan definisi variabel tambahan yang dikirim dari editor template.
-     */
-    private function normalizeVariabel(array $raw): array
-    {
-        $reserved = SuratTemplateRenderer::reservedKeys();
-        $result = [];
-        $seen = [];
-
-        foreach ($raw as $item) {
-            if (!is_array($item)) {
-                continue;
-            }
-
-            $label = trim((string) ($item['label'] ?? ''));
-            $kode = trim((string) ($item['kode'] ?? ''));
-
-            if ($label === '' && $kode === '') {
-                continue;
-            }
-
-            $kode = Str::slug($kode !== '' ? $kode : $label, '_');
-            if ($kode === '') {
-                continue;
-            }
-
-            $kode = $this->uniqueKey($kode, $reserved, $seen);
-            $seen[] = $kode;
-
-            $tipe = in_array(($item['tipe'] ?? 'text'), ['text', 'textarea', 'date'], true)
-                ? $item['tipe']
-                : 'text';
-
-            $result[] = [
-                'kode' => $kode,
-                'label' => $label !== '' ? $label : Str::headline($kode),
-                'tipe' => $tipe,
-                'wajib' => (bool) ($item['wajib'] ?? false),
-            ];
-        }
-
-        return $result;
-    }
-
-    private function uniqueKey(string $base, array $reserved, array $seen): string
-    {
-        $kode = $base;
-        $i = 1;
-
-        while (in_array($kode, $reserved, true) || in_array($kode, $seen, true)) {
-            $i++;
-            $kode = $base . '_' . $i;
-        }
-
-        return $kode;
     }
 
     private function defaultKonten(): string
     {
         return implode("\n", [
-            'Yang bertanda tangan di bawah ini Kepala {nama_desa}, Kecamatan Kangayan, Kabupaten Sumenep, dengan ini menerangkan dengan sebenarnya bahwa:',
+            'Yang bertanda tangan di bawah ini Kepala {nama_desa}, {wilayah_lengkap}, dengan ini menerangkan dengan sebenarnya bahwa:',
             '',
             '{tabel_pemohon}',
             '',

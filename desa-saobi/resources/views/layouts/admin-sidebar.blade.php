@@ -1,5 +1,7 @@
 @php
-    $pendingCount = \App\Models\SuratRequest::where('status', 'diajukan')->count();
+    $pendingCount = \App\Models\SuratRequest::where('status', 'pending')->count();
+    $resetPendingCount = \App\Models\PasswordResetRequest::where('status', 'pending')->count();
+    $activationPendingCount = \App\Models\AccountActivationRequest::where('status', 'pending')->count();
 @endphp
 
 <!-- Mobile Sidebar Backdrop -->
@@ -43,7 +45,7 @@
 
     <!-- Mobile Nav Content -->
     <div class="flex-1 overflow-y-auto px-4 py-5 space-y-6">
-        @include('layouts.partials.admin-sidebar-nav', ['pendingCount' => $pendingCount])
+        @include('layouts.partials.admin-sidebar-nav', ['pendingCount' => $pendingCount, 'resetPendingCount' => $resetPendingCount, 'activationPendingCount' => $activationPendingCount])
     </div>
 
     <!-- Mobile User Profile & Logout -->
@@ -69,7 +71,7 @@
 
     <!-- Navigation Menu -->
     <div class="flex-1 overflow-y-auto px-3.5 py-5 space-y-6">
-        @include('layouts.partials.admin-sidebar-nav', ['pendingCount' => $pendingCount])
+        @include('layouts.partials.admin-sidebar-nav', ['pendingCount' => $pendingCount, 'resetPendingCount' => $resetPendingCount, 'activationPendingCount' => $activationPendingCount])
     </div>
 
     <!-- Desktop User Profile & Logout -->

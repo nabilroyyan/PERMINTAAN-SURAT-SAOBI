@@ -120,7 +120,7 @@
     <!-- ISI SURAT -->
     <div class="content">
         <p>
-            Yang bertanda tangan di bawah ini Kepala Desa Saobi, Kecamatan Kangayan, Kabupaten Sumenep, menerangkan dengan sebenarnya bahwa:
+            Yang bertanda tangan di bawah ini Kepala {{ $desa->nama_desa ?? 'Desa' }}{{ filled($desa->wilayahLengkap()) ? ', ' . $desa->wilayahLengkap() : '' }}, menerangkan dengan sebenarnya bahwa:
         </p>
 
         <table class="table-data">
@@ -147,7 +147,7 @@
         </table>
 
         <p>
-            Nama yang bersangkutan di atas adalah benar-benar warga penduduk yang berdomisili di Desa Saobi, Kecamatan Kangayan, Kabupaten Sumenep.
+            Nama yang bersangkutan di atas adalah benar-benar warga penduduk yang berdomisili di {{ $desa->nama_desa ?? 'Desa' }}{{ filled($desa->wilayahLengkap()) ? ', ' . $desa->wilayahLengkap() : '' }}.
         </p>
         <p>
             Surat keterangan ini diberikan kepada yang bersangkutan untuk dipergunakan sebagaimana mestinya.
@@ -162,16 +162,17 @@
         @include('pdf.partials.qr-verifikasi')
 
         <div class="ttd-box">
-            <p style="margin: 0;">Saobi, {{ $tanggalSurat->translatedFormat('d F Y') }}</p>
-            <p style="margin: 2px 0 0 0; font-weight: bold;">Kepala Desa Saobi</p>
+            <p style="margin: 0;">{{ $desa->nama_desa ?? 'Desa' }}, {{ $tanggalSurat->translatedFormat('d F Y') }}</p>
+            <p style="margin: 2px 0 0 0; font-weight: bold;">Kepala {{ $desa->nama_desa ?? 'Desa' }}</p>
             
             <div class="ttd-space">
-                @if (!empty($desa->gambar_tanda_tangan) && file_exists(public_path('storage/' . $desa->gambar_tanda_tangan)))
-                    <img class="ttd-img" src="{{ public_path('storage/' . $desa->gambar_tanda_tangan) }}" alt="Tanda Tangan">
+                @php $ttd = $desa?->tandaTanganDataUri(); @endphp
+                @if ($ttd)
+                    <img class="ttd-img" src="{{ $ttd }}" alt="Tanda Tangan">
                 @endif
             </div>
 
-            <p class="nama-kades">{{ $desa->nama_kepala_desa ?? 'KEPALA DESA SAOBI' }}</p>
+            <p class="nama-kades">{{ $desa->nama_kepala_desa ?? 'KEPALA DESA' }}</p>
             <p class="nip-kades">NIP. {{ $desa->nip_kepala_desa ?? '-' }}</p>
         </div>
         <div style="clear: both;"></div>

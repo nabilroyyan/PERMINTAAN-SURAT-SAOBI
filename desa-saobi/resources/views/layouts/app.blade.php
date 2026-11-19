@@ -15,6 +15,7 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
+    @php($desaFooter = \App\Models\VillageSetting::first())
     @if (Auth::check() && Auth::user()->canAccessAdminPanel())
         <!-- Admin / Kepala Desa Layout with Sidebar -->
         <body class="font-sans antialiased bg-slate-50 text-slate-800 min-h-screen" x-data="{ sidebarOpen: false }">
@@ -73,7 +74,7 @@
 
                 <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-                        <p>&copy; {{ date('Y') }} <strong>Pemerintah Desa Saobi</strong>, Kecamatan Kangayan, Kabupaten Sumenep.</p>
+                        <p>&copy; {{ date('Y') }} <strong>Pemerintah {{ $desaFooter?->nama_desa ?? 'Desa' }}</strong>@if (filled($desaFooter?->wilayahLengkap())), {{ $desaFooter->wilayahLengkap() }}@endif.</p>
                         <p class="text-emerald-700 font-medium">Panel Kendali Administrator</p>
                     </div>
                 </footer>
@@ -136,7 +137,7 @@
 
             <footer class="bg-white border-t border-slate-200 py-6 text-center text-xs text-slate-500 mt-auto">
                 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2">
-                    <p>&copy; {{ date('Y') }} <strong>Pemerintah Desa Saobi</strong>, Kecamatan Kangayan, Kabupaten Sumenep.</p>
+                    <p>&copy; {{ date('Y') }} <strong>Pemerintah {{ $desaFooter?->nama_desa ?? 'Desa' }}</strong>@if (filled($desaFooter?->wilayahLengkap())), {{ $desaFooter->wilayahLengkap() }}@endif.</p>
                     <p class="text-emerald-700 font-medium">Sistem Permintaan & Layanan Surat Mandiri Online</p>
                 </div>
             </footer>

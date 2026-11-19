@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Client;
 
+use App\Enums\FormFieldType;
 use App\Http\Controllers\Controller;
+use App\Models\SuratDocument;
 use App\Models\SuratRequest;
 use App\Models\SuratType;
+use App\Support\FormFieldSchema;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -21,83 +24,116 @@ class SuratRequestController extends Controller
         return view('client.surat.index', compact('surat'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $jenisSurat = SuratType::where('is_active', true)
             ->with('template')
             ->orderBy('nama')
             ->get();
 
-        // Peta variabel tambahan (yang harus diisi pemohon) per jenis surat
+        // Peta field isian dinamis (yang harus diisi pemohon) per jenis surat
         $fieldMap = $jenisSurat->mapWithKeys(function ($jenis) {
-            return [$jenis->id => ($jenis->template?->variabel_tambahan ?? [])];
+            return [$jenis->id => $jenis->formFields()];
         });
 
-        return view('client.surat.create', compact('jenisSurat', 'fieldMap'));
+        // Peta persyaratan dokumen per jenis surat
+        $syaratMap = $jenisSurat->mapWithKeys(function ($jenis) {
+            return [$jenis->id => $jenis->persyaratan ?? []];
+        });
+
+        // Nilai siap isi otomatis dari data penduduk pemohon
+        $penduduk = $request->user()->penduduk;
+        $pendudukDefaults = [
+            'nama' => $penduduk?->nama_lengkap ?? $request->user()->name,
+            'nik' => $request->user()->nik,
+            'tempat_lahir' => $penduduk?->tempat_lahir,
+            'tanggal_lahir' => $penduduk?->tanggal_lahir?->format('Y-m-d'),
+            'jenis_kelamin' => $penduduk?->jenis_kelamin,
+            'agama' => $penduduk?->agama,
+            'pekerjaan' => $penduduk?->pekerjaan,
+            'status_perkawinan' => $penduduk?->status_perkawinan,
+            'dusun' => $penduduk?->dusun,
+            'rt' => $penduduk?->rt,
+            'rw' => $penduduk?->rw,
+            'alamat' => $penduduk?->alamat,
+            'telepon' => $penduduk?->telepon,
+        ];
+
+        return view('client.surat.create', compact('jenisSurat', 'fieldMap', 'syaratMap', 'pendudukDefaults'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'surat_type_id' => ['required', 'exists:surat_types,id'],
-            'alamat' => ['required', 'string', 'max:500'],
-            'keperluan' => ['required', 'string', 'max:500'],
         ]);
 
         $jenisSurat = SuratType::where('is_active', true)
             ->with('template')
             ->findOrFail($validated['surat_type_id']);
 
-        $fieldTambahan = $jenisSurat->template?->variabel_tambahan ?? [];
+        $fields = $jenisSurat->formFields();
 
-        if (!empty($fieldTambahan)) {
-            $rules = [];
-            $attributes = [];
-
-            foreach ($fieldTambahan as $field) {
-                $kode = $field['kode'];
-                $rules["tambahan.{$kode}"] = [
-                    ($field['wajib'] ?? false) ? 'required' : 'nullable',
-                    ($field['tipe'] ?? 'text') === 'date' ? 'date' : 'string',
-                    'max:2000',
-                ];
-                $attributes["tambahan.{$kode}"] = $field['label'] ?? $kode;
-            }
-
+        [$rules, $attributes] = FormFieldSchema::validationRules($fields);
+        if (!empty($rules)) {
             $request->validate($rules, [], $attributes);
         }
 
         $tambahan = [];
-        foreach ($fieldTambahan as $field) {
-            $tambahan[$field['kode']] = $request->input("tambahan.{$field['kode']}");
+        $fileInputs = [];
+
+        foreach ($fields as $field) {
+            $kode = $field['kode'];
+            $tipe = $field['tipe'] ?? FormFieldType::TEXT->value;
+
+            if ($tipe === FormFieldType::FILE->value) {
+                if ($request->hasFile("tambahan.{$kode}")) {
+                    $fileInputs[$kode] = $request->file("tambahan.{$kode}");
+                }
+                $tambahan[$kode] = null;
+                continue;
+            }
+
+            if ($tipe === FormFieldType::CHECKBOX->value) {
+                $tambahan[$kode] = array_values((array) $request->input("tambahan.{$kode}", []));
+                continue;
+            }
+
+            $tambahan[$kode] = $request->input("tambahan.{$kode}");
         }
 
-        $permohonan = DB::transaction(function () use (
-            $request,
-            $validated,
-            $jenisSurat,
-            $tambahan
-        ) {
+        $permohonan = DB::transaction(function () use ($request, $jenisSurat, $fields, $tambahan, $fileInputs) {
             $penduduk = $request->user()->penduduk;
+
+            $data = [
+                'nama' => $penduduk?->nama_lengkap ?? $request->user()->name,
+                'nik' => $request->user()->nik,
+                'tempat_lahir' => $penduduk?->tempat_lahir,
+                'tanggal_lahir' => $penduduk?->tanggal_lahir?->format('Y-m-d'),
+                'jenis_kelamin' => $penduduk?->jenis_kelamin,
+                'status_perkawinan' => $penduduk?->status_perkawinan,
+                'agama' => $penduduk?->agama ?? 'Islam',
+                'pekerjaan' => $penduduk?->pekerjaan,
+                'dusun' => $penduduk?->dusun,
+                'rt' => $penduduk?->rt,
+                'rw' => $penduduk?->rw,
+            ];
+
+            // Nilai field dinamis disimpan datar agar dapat dipakai variabel template
+            foreach ($tambahan as $kode => $nilai) {
+                if (is_scalar($nilai) && $nilai !== null && $nilai !== '') {
+                    $data[$kode] = $nilai;
+                }
+            }
+
+            $data['alamat'] = $data['alamat'] ?? ($penduduk?->alamat ?? '');
+            $data['keperluan'] = $data['keperluan'] ?? '';
+            $data['tambahan'] = $tambahan;
+
             $surat = SuratRequest::create([
                 'user_id' => $request->user()->id,
                 'surat_type_id' => $jenisSurat->id,
-                'data_pemohon' => [
-                    'nama' => $penduduk?->nama_lengkap ?? $request->user()->name,
-                    'nik' => $request->user()->nik,
-                    'tempat_lahir' => $penduduk?->tempat_lahir,
-                    'tanggal_lahir' => $penduduk?->tanggal_lahir?->format('Y-m-d'),
-                    'jenis_kelamin' => $penduduk?->jenis_kelamin,
-                    'status_perkawinan' => $penduduk?->status_perkawinan,
-                    'agama' => $penduduk?->agama ?? 'Islam',
-                    'pekerjaan' => $penduduk?->pekerjaan,
-                    'dusun' => $penduduk?->dusun,
-                    'rt' => $penduduk?->rt,
-                    'rw' => $penduduk?->rw,
-                    'alamat' => $validated['alamat'],
-                    'keperluan' => $validated['keperluan'],
-                    'tambahan' => $tambahan,
-                ],
+                'data_pemohon' => $data,
                 'status' => 'pending',
             ]);
 
@@ -106,6 +142,18 @@ class SuratRequestController extends Controller
                 'status' => 'pending',
                 'catatan' => 'Permohonan surat berhasil diajukan.',
             ]);
+
+            $definisi = collect($fields)->keyBy('kode');
+
+            foreach ($fileInputs as $kode => $file) {
+                $path = $file->store('surat-dokumen', 'public');
+
+                $surat->documents()->create([
+                    'nama_file' => $definisi[$kode]['label'] ?? $file->getClientOriginalName(),
+                    'path_file' => $path,
+                    'jenis_dokumen' => $kode,
+                ]);
+            }
 
             return $surat;
         });
@@ -122,9 +170,41 @@ class SuratRequestController extends Controller
             404
         );
 
-        $suratRequest->load('suratType.template', 'statusHistories');
+        $suratRequest->load('suratType.template', 'statusHistories', 'documents');
 
         return view('client.surat.show', compact('suratRequest'));
+    }
+
+    public function downloadDokumen(Request $request, SuratRequest $suratRequest, SuratDocument $document)
+    {
+        abort_unless($suratRequest->user_id === $request->user()->id, 403);
+        abort_unless($document->surat_request_id === $suratRequest->id, 404);
+
+        if (!Storage::disk('public')->exists($document->path_file)) {
+            abort(404, 'Berkas tidak ditemukan di server.');
+        }
+
+        return Storage::disk('public')->download($document->path_file, $document->nama_file);
+    }
+
+    /**
+     * Tampilkan berkas unggahan langsung di layar (inline) sebelum diunduh.
+     */
+    public function previewDokumen(Request $request, SuratRequest $suratRequest, SuratDocument $document)
+    {
+        abort_unless($suratRequest->user_id === $request->user()->id, 403);
+        abort_unless($document->surat_request_id === $suratRequest->id, 404);
+
+        if (!Storage::disk('public')->exists($document->path_file)) {
+            abort(404, 'Berkas tidak ditemukan di server.');
+        }
+
+        $mime = Storage::disk('public')->mimeType($document->path_file) ?: 'application/octet-stream';
+
+        return response()->file(Storage::disk('public')->path($document->path_file), [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . $document->nama_file . '"',
+        ]);
     }
 
     public function download(Request $request, SuratRequest $suratRequest)

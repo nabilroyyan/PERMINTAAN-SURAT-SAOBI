@@ -3,6 +3,8 @@
 use App\Http\Controllers\Client\DashboardController as ClientDashboard;
 use App\Http\Controllers\Client\SuratRequestController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Admin\AccountActivationRequestController;
+use App\Http\Controllers\Admin\PasswordResetRequestController;
 use App\Http\Controllers\Admin\SuratManagementController;
 use App\Http\Controllers\Admin\PendudukController;
 use App\Http\Controllers\Admin\SuratTemplateController;
@@ -62,6 +64,12 @@ Route::middleware(['auth', 'role:client'])
         Route::get('/surat/{suratRequest}/download', [SuratRequestController::class, 'download'])
             ->name('surat.download');
 
+        Route::get('/surat/{suratRequest}/dokumen/{document}', [SuratRequestController::class, 'downloadDokumen'])
+            ->name('surat.dokumen');
+
+        Route::get('/surat/{suratRequest}/dokumen/{document}/lihat', [SuratRequestController::class, 'previewDokumen'])
+            ->name('surat.dokumen.lihat');
+
         Route::get('/live-check', [ClientDashboard::class, 'liveCheck'])
             ->name('live-check');
     });
@@ -94,6 +102,12 @@ Route::middleware(['auth', 'role:admin'])
         Route::get('/permohonan/{suratRequest}/download', [SuratManagementController::class, 'download'])
             ->name('permohonan.download');
 
+        Route::get('/permohonan/{suratRequest}/dokumen/{document}', [SuratManagementController::class, 'downloadDokumen'])
+            ->name('permohonan.dokumen');
+
+        Route::get('/permohonan/{suratRequest}/dokumen/{document}/lihat', [SuratManagementController::class, 'previewDokumen'])
+            ->name('permohonan.dokumen.lihat');
+
         Route::get('/penduduk', [PendudukController::class, 'index'])
             ->name('penduduk.index');
 
@@ -108,9 +122,6 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::get('/penduduk/template', [PendudukController::class, 'downloadTemplate'])
             ->name('penduduk.template');
-
-        Route::get('/penduduk/sample-5000', [PendudukController::class, 'downloadSample5000'])
-            ->name('penduduk.sample-5000');
 
         Route::delete('/penduduk/{penduduk}', [PendudukController::class, 'destroy'])
             ->name('penduduk.destroy');
@@ -130,6 +141,24 @@ Route::middleware(['auth', 'role:admin'])
 
         Route::post('/pengaturan', [VillageSettingController::class, 'update'])
             ->name('settings.update');
+
+        Route::get('/reset-sandi', [PasswordResetRequestController::class, 'index'])
+            ->name('reset-sandi.index');
+
+        Route::post('/reset-sandi/{resetRequest}/setujui', [PasswordResetRequestController::class, 'approve'])
+            ->name('reset-sandi.approve');
+
+        Route::post('/reset-sandi/{resetRequest}/tolak', [PasswordResetRequestController::class, 'reject'])
+            ->name('reset-sandi.reject');
+
+        Route::get('/aktivasi-akun', [AccountActivationRequestController::class, 'index'])
+            ->name('aktivasi-akun.index');
+
+        Route::post('/aktivasi-akun/{activationRequest}/setujui', [AccountActivationRequestController::class, 'approve'])
+            ->name('aktivasi-akun.approve');
+
+        Route::post('/aktivasi-akun/{activationRequest}/tolak', [AccountActivationRequestController::class, 'reject'])
+            ->name('aktivasi-akun.reject');
     });
 
 require __DIR__.'/auth.php';

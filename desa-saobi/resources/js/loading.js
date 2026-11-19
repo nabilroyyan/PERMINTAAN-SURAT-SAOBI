@@ -1,6 +1,15 @@
 let progressInterval = null;
 let progressValue = 0;
 let overlayTimeout = null;
+let autoHideTimeout = null;
+let minHideTimeout = null;
+let loadingShownAt = 0;
+
+// Batas maksimal overlay loading tampil (failsafe), dalam milidetik
+const MAX_LOADING_MS = 15000;
+
+// Durasi minimal overlay tampil agar sempat dibaca user sebelum menutup perlahan
+const MIN_LOADING_MS = 1800;
 
 export function startProgressBar() {
     const bar = document.getElementById('global-top-progress-bar');
@@ -56,9 +65,26 @@ export function showLoading(title = 'Memuat Halaman...', subtitle = 'Mohon tungg
             card.classList.add('scale-100');
         }
     }
+
+    // Failsafe: overlay hanya tampil maksimal 15 detik, lalu tertutup otomatis.
+    loadingShownAt = Date.now();
+    clearTimeout(minHideTimeout);
+    clearTimeout(autoHideTimeout);
+    autoHideTimeout = setTimeout(() => hideLoading(), MAX_LOADING_MS);
 }
 
 export function hideLoading() {
+    clearTimeout(autoHideTimeout);
+
+    // Pastikan overlay tampil minimal 1 detik agar tidak berkedip sekejap.
+    const elapsed = Date.now() - loadingShownAt;
+    if (loadingShownAt > 0 && elapsed < MIN_LOADING_MS) {
+        clearTimeout(minHideTimeout);
+        minHideTimeout = setTimeout(() => hideLoading(), MIN_LOADING_MS - elapsed);
+        return;
+    }
+
+    loadingShownAt = 0;
     finishProgressBar();
 
     const overlay = document.getElementById('global-loading-overlay');
@@ -171,33 +197,42 @@ export function initLoadingHandlers() {
             return;
         }
 
-        // Tautan unduhan berkas (download PDF/template)
-        if (href.includes('/download') || href.includes('/template')) {
-            showLoading('Menyiapkan Berkas Dokumen...', 'Sedang mengunduh berkas surat...');
-            setTimeout(() => {
-                hideLoading();
-            }, 3000);
+        let targetUrl;
+        try {
+            targetUrl = new URL(link.href, window.location.origin);
+        } catch (err) {
             return;
         }
 
-        // Cek apakah menuju halaman internal berbeda
-        try {
-            const targetUrl = new URL(link.href, window.location.origin);
-            const isSameOrigin = targetUrl.origin === window.location.origin;
-            const isDifferentPage = targetUrl.pathname !== window.location.pathname || targetUrl.search !== window.location.search;
+        const path = targetUrl.pathname;
 
-            if (isSameOrigin && isDifferentPage) {
-                const msg = getNavigationMessage(targetUrl.pathname);
-                startProgressBar();
+        // Tautan unduhan berkas (PDF surat, berkas dokumen, template/sample Excel).
+        // Responsnya berupa attachment sehingga halaman TIDAK berpindah — jangan
+        // biarkan overlay loading menggantung. Cukup tampilkan indikator singkat.
+        const isDownloadLink =
+            /\/download(\/|$)/.test(path) ||
+            /\/dokumen\//.test(path) ||
+            path.endsWith('/template');
 
-                clearTimeout(overlayTimeout);
-                // Munculkan overlay halus jika proses navigasi butuh waktu > 180ms
-                overlayTimeout = setTimeout(() => {
-                    showLoading(msg.title, msg.subtitle);
-                }, 180);
-            }
-        } catch (err) {
-            // fallback ignore
+        if (isDownloadLink) {
+            // Overlay akan tertutup otomatis lewat failsafe 5 detik di showLoading().
+            showLoading('Menyiapkan Berkas Dokumen...', 'Sedang mengunduh berkas...');
+            return;
+        }
+
+        // Navigasi internal ke halaman lain
+        const isSameOrigin = targetUrl.origin === window.location.origin;
+        const isDifferentPage = path !== window.location.pathname || targetUrl.search !== window.location.search;
+
+        if (isSameOrigin && isDifferentPage) {
+            const msg = getNavigationMessage(path);
+            startProgressBar();
+
+            clearTimeout(overlayTimeout);
+            // Munculkan overlay halus jika proses navigasi butuh waktu > 180ms
+            overlayTimeout = setTimeout(() => {
+                showLoading(msg.title, msg.subtitle);
+            }, 180);
         }
     });
 

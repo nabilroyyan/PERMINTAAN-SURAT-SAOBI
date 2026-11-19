@@ -1,4 +1,8 @@
 <x-guest-layout>
+    @php
+        $emailDomain = 'saobi.desa.id';
+        $emailLocalOld = old('email') ? \Illuminate\Support\Str::before(old('email'), '@') : '';
+    @endphp
     <div x-data="{
         tab: '{{ $errors->has('email') ? 'petugas' : 'warga' }}',
         nik: '{{ old('nik', '') }}',
@@ -7,6 +11,10 @@
         verifiedName: '',
         verifiedDusun: '',
         nikError: '{{ $errors->first('nik') }}',
+        needActivation: {{ $errors->aktivasi->isNotEmpty() ? 'true' : 'false' }},
+        emailDomain: @js($emailDomain),
+        emailLocal: @js($emailLocalOld),
+        get emailFull() { return (this.emailLocal || '').trim() + '@' + this.emailDomain; },
 
         checkNik() {
             const cleanNik = (this.nik || '').trim();
@@ -17,6 +25,7 @@
 
             this.checking = true;
             this.nikError = '';
+            this.needActivation = false;
 
             fetch('{{ route('login.check-nik') }}', {
                 method: 'POST',
@@ -33,6 +42,7 @@
                 if (res.status === 200 && res.body.success) {
                     if (!res.body.has_account) {
                         this.nikError = res.body.message;
+                        this.needActivation = true;
                         return;
                     }
                     this.verifiedName = res.body.nama;
@@ -56,6 +66,7 @@
             this.step = 1;
             this.nikError = '';
             this.verifiedName = '';
+            this.needActivation = false;
             this.$nextTick(() => {
                 const nikInput = document.getElementById('warga_nik');
                 if (nikInput) nikInput.focus();
@@ -282,6 +293,117 @@
                 </button>
             </form>
         </div>
+
+        <!-- Panel Ajukan Aktivasi Akun (hanya pada tab Warga & bila NIK terdaftar namun akun belum aktif) -->
+        <div x-show="needActivation && tab === 'warga'" x-cloak
+             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter-start="opacity-0 translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="mt-5 p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-left">
+            <div class="flex items-start gap-2.5">
+                <div class="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <div class="min-w-0">
+                    <p class="text-xs font-bold text-amber-900">Akun belum diaktifkan oleh Admin</p>
+                    <p class="text-[11px] text-amber-800 mt-0.5 leading-relaxed">
+                        Ajukan aktivasi akun ke petugas desa. Setelah disetujui, Anda dapat masuk memakai email &amp; kata sandi yang Anda ajukan di bawah ini.
+                    </p>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('aktivasi-akun.store') }}" class="mt-3.5 space-y-3">
+                @csrf
+                <input type="hidden" name="nik" :value="nik">
+
+                @if ($errors->aktivasi->has('nik'))
+                    <p class="text-red-600 text-xs font-semibold">{{ $errors->aktivasi->first('nik') }}</p>
+                @endif
+
+                <div>
+                    <label for="aktivasi_email" class="block text-xs font-bold text-slate-700 mb-1">
+                        Alamat Email Aktif <span class="text-red-500">*</span>
+                    </label>
+                    <div class="flex items-stretch">
+                        <input id="aktivasi_email" type="text" x-model="emailLocal"
+                               x-on:input="emailLocal = emailLocal.replace(/[^a-zA-Z0-9._-]/g, '').toLowerCase()"
+                               required
+                               placeholder="namawarga"
+                               class="flex-1 min-w-0 rounded-l-xl rounded-r-none border-r-0 border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-sm py-2.5 px-3.5">
+                        <span class="inline-flex items-center px-3 rounded-r-xl bg-slate-100 border border-l-0 border-slate-300 text-slate-500 text-xs font-mono select-none">{{ '@'.$emailDomain }}</span>
+                    </div>
+                    <input type="hidden" name="email" :value="emailFull" x-effect="$el.value = emailFull">
+                    <p class="text-[11px] text-slate-400 mt-1">
+                        Gunakan email berdomain resmi <strong>{{ '@'.$emailDomain }}</strong> — cukup ketik nama pengguna, domain otomatis ditambahkan (mis. <span class="font-mono">namawarga{{ '@'.$emailDomain }}</span>).
+                    </p>
+                    @error('email', 'aktivasi')
+                        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="aktivasi_password" class="block text-xs font-bold text-slate-700 mb-1">
+                            Kata Sandi <span class="text-red-500">*</span>
+                        </label>
+                        <input id="aktivasi_password" type="password" name="password" required minlength="6" autocomplete="new-password"
+                               placeholder="Minimal 6 karakter"
+                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-sm py-2.5 px-3.5">
+                        @error('password', 'aktivasi')
+                            <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="aktivasi_password_confirmation" class="block text-xs font-bold text-slate-700 mb-1">
+                            Konfirmasi <span class="text-red-500">*</span>
+                        </label>
+                        <input id="aktivasi_password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
+                               placeholder="Ketik ulang kata sandi"
+                               class="w-full rounded-xl border-slate-300 focus:border-emerald-500 focus:ring-emerald-500 text-sm py-2.5 px-3.5">
+                    </div>
+                </div>
+
+                <button type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 py-2.5 px-4 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white font-bold text-xs rounded-xl shadow-md shadow-amber-600/20 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
+                    </svg>
+                    <span>Ajukan Aktivasi Akun ke Admin</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Popup status permohonan aktivasi -->
+        @if (session('activation_status'))
+            <div x-data="{ showProses: true }"
+                 x-show="showProses"
+                 x-transition:enter="transition ease-out duration-300"
+                 x-transition:enter-start="opacity-0"
+                 x-transition:enter-end="opacity-100"
+                 x-transition:leave="transition ease-in duration-700"
+                 x-transition:leave-start="opacity-100"
+                 x-transition:leave-end="opacity-0"
+                 class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-xs p-4">
+                <div class="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-sm w-full p-6 sm:p-7 text-center space-y-4">
+                    <div class="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+                        <svg class="w-8 h-8 animate-spin" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-extrabold text-slate-800">Permintaan Anda Sedang Diproses</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">{{ session('activation_status') }}</p>
+                    </div>
+                    <button type="button" @click="showProses = false"
+                            class="w-full py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md shadow-emerald-600/20 transition">
+                        Mengerti
+                    </button>
+                </div>
+            </div>
+        @endif
 
         <!-- Footer Info: Pendaftaran Mandiri Dihapus -->
         <div class="text-center pt-4 mt-2 border-t border-slate-100">

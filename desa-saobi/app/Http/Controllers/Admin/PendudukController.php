@@ -127,10 +127,6 @@ class PendudukController extends Controller
 
             $importedCount = 0;
             $updatedCount = 0;
-            $accountCount = 0;
-
-            // Cache hash password agar Bcrypt tidak dieksekusi berulang untuk kata sandi yang sama
-            $passwordHashCache = [];
 
             // Filter baris data yang valid (skip header & baris kosong)
             $validRows = [];
@@ -158,27 +154,14 @@ class PendudukController extends Controller
 
             foreach ($chunks as $chunk) {
                 $chunkNiks = [];
-                $chunkEmails = [];
 
                 foreach ($chunk as $r) {
                     $nik = trim((string) ($r['A'] ?? ''));
-                    $email = strtolower(trim((string) ($r['O'] ?? '')));
                     if ($nik) $chunkNiks[] = $nik;
-                    if ($email) $chunkEmails[] = $email;
                 }
 
-                // Ambil data yang sudah ada di database sekaligus dalam 1 query batch
+                // Ambil data penduduk yang sudah ada sekaligus dalam 1 query batch
                 $existingPenduduks = Penduduk::whereIn('nik', $chunkNiks)->get()->keyBy('nik');
-                $existingUsers = User::whereIn('nik', $chunkNiks)
-                    ->orWhereIn('email', $chunkEmails)
-                    ->get();
-
-                $usersByNik = [];
-                $usersByEmail = [];
-                foreach ($existingUsers as $u) {
-                    if ($u->nik) $usersByNik[$u->nik] = $u;
-                    if ($u->email) $usersByEmail[$u->email] = $u;
-                }
 
                 foreach ($chunk as $row) {
                     $nik = trim((string) ($row['A'] ?? ''));
@@ -206,62 +189,11 @@ class PendudukController extends Controller
                     $jkRaw = strtoupper(trim((string) ($row['F'] ?? 'L')));
                     $jenisKelamin = (str_starts_with($jkRaw, 'P') || $jkRaw === 'PEREMPUAN') ? 'Perempuan' : 'Laki-laki';
 
-                    // Normalisasi role pengguna (dari Kolom Q)
-                    $roleRaw = strtolower(trim((string) ($row['Q'] ?? '')));
-                    if (str_contains($roleRaw, 'admin')) {
-                        $roleVal = UserRole::ADMIN->value;
-                    } else {
-                        $roleVal = UserRole::WARGA->value;
-                    }
-
                     $penduduk = $existingPenduduks->get($nik);
-                    $userId = $penduduk?->user_id;
 
-                    // Email dan Password dari Excel
-                    $email = strtolower(trim((string) ($row['O'] ?? '')));
-                    $passwordRaw = trim((string) ($row['P'] ?? ''));
-
-                    if (!empty($email)) {
-                        $user = $usersByNik[$nik] ?? ($usersByEmail[$email] ?? null);
-
-                        $plainPassword = $passwordRaw ?: 'saobi123';
-                        if (!isset($passwordHashCache[$plainPassword])) {
-                            $passwordHashCache[$plainPassword] = Hash::make($plainPassword);
-                        }
-                        $hashedPassword = $passwordHashCache[$plainPassword];
-
-                        if ($user) {
-                            $updateData = [
-                                'name' => $nama,
-                                'nik' => $nik,
-                                'email' => $email,
-                            ];
-                            // Hanya timpa role jika kolom Q diisi di Excel
-                            if (!empty($roleRaw)) {
-                                $updateData['role'] = $roleVal;
-                            }
-                            if (!empty($passwordRaw)) {
-                                $updateData['password'] = $hashedPassword;
-                                $updateData['password_plain'] = $passwordRaw;
-                            }
-                            $user->update($updateData);
-                            $userId = $user->id;
-                        } else {
-                            $newUser = User::create([
-                                'name' => $nama,
-                                'nik' => $nik,
-                                'email' => $email,
-                                'password' => $hashedPassword,
-                                'password_plain' => $plainPassword,
-                                'role' => $roleVal,
-                            ]);
-                            $userId = $newUser->id;
-                            $usersByNik[$nik] = $newUser;
-                            $usersByEmail[$email] = $newUser;
-                        }
-                        $accountCount++;
-                    }
-
+                    // Catatan: import ini HANYA menyimpan data master kependudukan.
+                    // Akun login TIDAK dibuat otomatis — warga mengaktifkannya
+                    // melalui menu "Aktivasi Akun" (persetujuan admin).
                     $data = [
                         'no_kk' => $noKk ?: ($penduduk->no_kk ?? $nik),
                         'nama_lengkap' => $nama,
@@ -276,7 +208,6 @@ class PendudukController extends Controller
                         'pekerjaan' => trim((string) ($row['L'] ?? '')) ?: null,
                         'status_perkawinan' => trim((string) ($row['M'] ?? '')) ?: null,
                         'telepon' => trim((string) ($row['N'] ?? '')) ?: null,
-                        'user_id' => $userId,
                     ];
 
                     if ($penduduk) {
@@ -296,7 +227,7 @@ class PendudukController extends Controller
             $elapsedSeconds = round(microtime(true) - $startTime, 2);
 
             return redirect()->route('admin.penduduk.index')
-                ->with('success', "Proses import selesai dalam {$elapsedSeconds} detik! Berhasil menambahkan {$importedCount} data baru, memperbarui {$updatedCount} warga, dan memproses {$accountCount} akun login.");
+                ->with('success', "Proses import selesai dalam {$elapsedSeconds} detik. {$importedCount} data baru ditambahkan dan {$updatedCount} data diperbarui. Akun login tidak dibuat otomatis — warga mengaktifkannya lewat menu Aktivasi Akun.");
         } catch (\Exception $e) {
             \Illuminate\Support\Facades\DB::rollBack();
             return back()->with('error', 'Gagal memproses file Excel: ' . $e->getMessage());
@@ -309,7 +240,7 @@ class PendudukController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('Master Penduduk Saobi');
 
-        // Headers (17 Kolom lengkap termasuk Role Akun)
+        // Headers (14 kolom data master kependudukan — tanpa kolom akun login)
         $headers = [
             'A1' => 'NIK (16 Digit)',
             'B1' => 'No KK (16 Digit)',
@@ -325,9 +256,6 @@ class PendudukController extends Controller
             'L1' => 'Pekerjaan',
             'M1' => 'Status Perkawinan',
             'N1' => 'Nomor HP / WhatsApp',
-            'O1' => 'Email Akun Login (Warga)',
-            'P1' => 'Password Akun Login (Default: saobi123)',
-            'Q1' => 'Role Akun (warga / admin)',
         ];
 
         foreach ($headers as $cell => $value) {
@@ -335,7 +263,7 @@ class PendudukController extends Controller
         }
 
         // Style Header Modern
-        $sheet->getStyle('A1:Q1')->applyFromArray([
+        $sheet->getStyle('A1:N1')->applyFromArray([
             'font' => [
                 'bold' => true,
                 'color' => ['argb' => 'FFFFFFFF'],
@@ -353,7 +281,7 @@ class PendudukController extends Controller
         ]);
         $sheet->getRowDimension(1)->setRowHeight(30);
 
-        // Contoh Data Realistis (Warga, Admin Desa)
+        // Contoh Data (hanya data kependudukan; akun login diaktifkan lewat menu Aktivasi Akun)
         $sampleData = [
             [
                 '3529061204950001',
@@ -370,9 +298,6 @@ class PendudukController extends Controller
                 'Nelayan',
                 'Kawin',
                 '081234567890',
-                'ahmad@saobi.desa.id',
-                'saobi123',
-                'warga',
             ],
             [
                 '3529065008980002',
@@ -389,28 +314,22 @@ class PendudukController extends Controller
                 'Mengurus Rumah Tangga',
                 'Kawin',
                 '081234567891',
-                'siti@saobi.desa.id',
-                'saobi123',
-                'warga',
             ],
             [
-                '3529000000000001',
-                '3529060101200002',
-                'Bahrul Anam (Admin)',
+                '3529067001010003',
+                '3529060101200001',
+                'Bambang Wijaya',
                 'Sumenep',
-                '1990-01-01',
+                '2001-01-15',
                 'Laki-laki',
-                'Dusun Saobi Barat RT 02 / RW 01, Desa Saobi, Kec. Kangayan, Kab. Sumenep',
+                'Dusun Saobi Barat RT 03 / RW 01, Desa Saobi, Kec. Kangayan, Kab. Sumenep',
                 'Saobi Barat',
-                '02',
+                '03',
                 '01',
                 'Islam',
-                'Perangkat Desa',
-                'Kawin',
-                '081200000001',
-                'admin@desasaobi.id',
-                'password',
-                'admin',
+                'Wiraswasta',
+                'Belum Kawin',
+                '081298765432',
             ],
         ];
 
@@ -432,8 +351,7 @@ class PendudukController extends Controller
         $widths = [
             'A' => 22, 'B' => 22, 'C' => 28, 'D' => 18, 'E' => 16,
             'F' => 16, 'G' => 45, 'H' => 18, 'I' => 8, 'J' => 8,
-            'K' => 14, 'L' => 22, 'M' => 18, 'N' => 20, 'O' => 30,
-            'P' => 22, 'Q' => 22,
+            'K' => 14, 'L' => 22, 'M' => 18, 'N' => 20,
         ];
         foreach ($widths as $col => $w) {
             $sheet->getColumnDimension($col)->setWidth($w);
@@ -450,25 +368,6 @@ class PendudukController extends Controller
         $response->headers->set('Cache-Control', 'max-age=0');
 
         return $response;
-    }
-
-    /**
-     * Download dataset 5.000 data penduduk simulasi resmi Desa Saobi
-     */
-    public function downloadSample5000()
-    {
-        $path = public_path('data_penduduk_desa_saobi_5000_warga.xlsx');
-        if (!file_exists($path)) {
-            $path = base_path('data_penduduk_desa_saobi_5000_warga.xlsx');
-        }
-
-        if (!file_exists($path)) {
-            return back()->with('error', 'File data 5.000 penduduk belum tersedia di server.');
-        }
-
-        return response()->download($path, 'data_penduduk_desa_saobi_5000_warga.xlsx', [
-            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ]);
     }
 
     /**

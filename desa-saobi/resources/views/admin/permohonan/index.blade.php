@@ -47,6 +47,7 @@
                         <option value="">Semua Status</option>
                         <option value="pending" @selected(request('status') === 'pending')>Menunggu Verifikasi</option>
                         <option value="processing" @selected(request('status') === 'processing')>Sedang Diproses</option>
+                        <option value="revision" @selected(request('status') === 'revision')>Perlu Revisi</option>
                         <option value="completed" @selected(request('status') === 'completed')>Selesai / Terbit</option>
                         <option value="rejected" @selected(request('status') === 'rejected')>Ditolak</option>
                     </select>

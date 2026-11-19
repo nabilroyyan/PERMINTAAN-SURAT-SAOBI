@@ -31,7 +31,7 @@
                         {{ $desa->nama_desa ?? 'Pemerintah Desa Saobi' }}
                     </h1>
                     <p class="text-xs sm:text-sm text-emerald-100">
-                        Kecamatan Kangayan, Kabupaten Sumenep &bull; Verifikasi Keaslian Surat
+                        @if (filled($desa?->wilayahLengkap())){{ $desa->wilayahLengkap() }} &bull; @endif Verifikasi Keaslian Surat
                     </p>
                 </div>
             </div>
@@ -123,8 +123,7 @@
 
         <footer class="bg-white border-t border-slate-200 py-5 text-center text-xs text-slate-500">
             <div class="max-w-3xl mx-auto px-4">
-                &copy; {{ date('Y') }} <strong>{{ $desa->nama_desa ?? 'Pemerintah Desa Saobi' }}</strong>,
-                Kecamatan Kangayan, Kabupaten Sumenep.
+                &copy; {{ date('Y') }} <strong>{{ $desa->nama_desa ?? 'Pemerintah Desa Saobi' }}</strong>@if (filled($desa?->wilayahLengkap())), {{ $desa->wilayahLengkap() }}@endif.
             </div>
         </footer>
     </div>
